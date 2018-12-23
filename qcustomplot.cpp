@@ -12578,7 +12578,7 @@ void QCPAxisRect::mouseReleaseEvent(QMouseEvent *event)
 void QCPAxisRect::wheelEvent(QWheelEvent *event)
 {
   // Mouse range zooming interaction:
-  if (mParentPlot->interactions().testFlag(QCP::iRangeZoom))
+  if (/*mParentPlot->interactions().testFlag(QCP::iRangeZoom)*/1)
   {
     if (mRangeZoom != 0)
     {

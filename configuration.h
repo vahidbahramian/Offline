@@ -105,7 +105,14 @@ const QString g_strOSD_DEMOD_TYPE[nOSD_DEMOD_TYPE] = {"None" ,"BPSK" ,"QPSK" ,"8
                                                      "QPR9", "QPR25","QPR49", "pi/4DQPSK", "UAQPSK", "4FSK",
                                                      "8FSK", "ASK4", "ASK2", "SQPSK", "CP2FSK", "MSK", "GMSK", "GMSK",
                                                      "SOQPSK", "AM", "FM", "SSB", "SQPN","DSB"};
+struct ESTIMATE_PARAM
+{
+    int iAMR;
+    double dFC;
+    double dSNR;
+    double sRS;
 
+};
 
 class Configuration
 {

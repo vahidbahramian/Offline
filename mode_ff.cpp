@@ -2,12 +2,130 @@
 
 Mode_FF::Mode_FF()
 {
-    x_Freq=0.0;y_lvl=-50.0;
 
+}
+void Mode_FF::InitGraph(Ui::MainWindow *ui)
+{
+    demod_TimeDomain = new CustomPlotZoom;
+    demod_TimeDomain->IsPSD=true;
+    demod_TimeDomain->addGraph();
+    demod_TimeDomain->xAxis->setBasePen(QPen(Qt::white, 1));
+    demod_TimeDomain->yAxis->setBasePen(QPen(Qt::white, 1));
+    demod_TimeDomain->xAxis->setTickPen(QPen(Qt::white, 1));
+    demod_TimeDomain->yAxis->setTickPen(QPen(Qt::white, 1));
+    demod_TimeDomain->xAxis->setSubTickPen(QPen(Qt::white, 1));
+    demod_TimeDomain->yAxis->setSubTickPen(QPen(Qt::white, 1));
+    demod_TimeDomain->xAxis->setTickLabelColor(Qt::white);
+    demod_TimeDomain->yAxis->setTickLabelColor(Qt::white);
+    demod_TimeDomain->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    demod_TimeDomain->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    demod_TimeDomain->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    demod_TimeDomain->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    demod_TimeDomain->xAxis->grid()->setSubGridVisible(true);
+    demod_TimeDomain->yAxis->grid()->setSubGridVisible(true);
+    demod_TimeDomain->xAxis->grid()->setZeroLinePen(Qt::NoPen);
+    demod_TimeDomain->yAxis->grid()->setZeroLinePen(Qt::NoPen);
+    demod_TimeDomain->xAxis->setUpperEnding(QCPLineEnding::esNone);
+    demod_TimeDomain->yAxis->setUpperEnding(QCPLineEnding::esNone);
+    demod_TimeDomain->IsDemoduling=false;
+    demod_TimeDomain->setZoomMode(true);
+    demod_TimeDomain->setXZoomMode(true);
+    demod_TimeDomain->setSignalMode(false);
+    demod_TimeDomain->xAxis->setRange(0, 83.33*1e6);
+    demod_TimeDomain->yAxis->setRange(-130,130);
+
+
+
+    demod_PhaseErr = new CustomPlotZoom;
+    demod_PhaseErr->IsPSD=true;
+    demod_PhaseErr->addGraph();
+    demod_PhaseErr->addGraph();
+    demod_PhaseErr->xAxis->setBasePen(QPen(Qt::white, 1));
+    demod_PhaseErr->yAxis->setBasePen(QPen(Qt::white, 1));
+    demod_PhaseErr->xAxis->setTickPen(QPen(Qt::white, 1));
+    demod_PhaseErr->yAxis->setTickPen(QPen(Qt::white, 1));
+    demod_PhaseErr->xAxis->setSubTickPen(QPen(Qt::white, 1));
+    demod_PhaseErr->yAxis->setSubTickPen(QPen(Qt::white, 1));
+    demod_PhaseErr->xAxis->setTickLabelColor(Qt::white);
+    demod_PhaseErr->yAxis->setTickLabelColor(Qt::white);
+    demod_PhaseErr->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    demod_PhaseErr->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    demod_PhaseErr->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    demod_PhaseErr->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    demod_PhaseErr->xAxis->grid()->setSubGridVisible(true);
+    demod_PhaseErr->yAxis->grid()->setSubGridVisible(true);
+    demod_PhaseErr->xAxis->grid()->setZeroLinePen(Qt::NoPen);
+    demod_PhaseErr->yAxis->grid()->setZeroLinePen(Qt::NoPen);
+    demod_PhaseErr->xAxis->setUpperEnding(QCPLineEnding::esNone);
+    demod_PhaseErr->yAxis->setUpperEnding(QCPLineEnding::esNone);
+    demod_PhaseErr->IsDemoduling=false;
+    demod_PhaseErr->setZoomMode(true);
+    demod_PhaseErr->setXZoomMode(true);
+    demod_PhaseErr->setSignalMode(false);
+    demod_PhaseErr->xAxis->setRange(0, 83.33*1e6);
+    demod_PhaseErr->yAxis->setRange(-130,130);
+
+
+    demod_Spectrum = new CustomPlotZoom;
+    demod_Spectrum->IsPSD=true;
+    demod_Spectrum->addGraph();
+    demod_Spectrum->addGraph();
+    demod_Spectrum->xAxis->setBasePen(QPen(Qt::white, 1));
+    demod_Spectrum->yAxis->setBasePen(QPen(Qt::white, 1));
+    demod_Spectrum->xAxis->setTickPen(QPen(Qt::white, 1));
+    demod_Spectrum->yAxis->setTickPen(QPen(Qt::white, 1));
+    demod_Spectrum->xAxis->setSubTickPen(QPen(Qt::white, 1));
+    demod_Spectrum->yAxis->setSubTickPen(QPen(Qt::white, 1));
+    demod_Spectrum->xAxis->setTickLabelColor(Qt::white);
+    demod_Spectrum->yAxis->setTickLabelColor(Qt::white);
+    demod_Spectrum->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    demod_Spectrum->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
+    demod_Spectrum->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    demod_Spectrum->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
+    demod_Spectrum->xAxis->grid()->setSubGridVisible(true);
+    demod_Spectrum->yAxis->grid()->setSubGridVisible(true);
+    demod_Spectrum->xAxis->grid()->setZeroLinePen(Qt::NoPen);
+    demod_Spectrum->yAxis->grid()->setZeroLinePen(Qt::NoPen);
+    demod_Spectrum->xAxis->setUpperEnding(QCPLineEnding::esNone);
+    demod_Spectrum->yAxis->setUpperEnding(QCPLineEnding::esNone);
+    demod_Spectrum->IsDemoduling=false;
+    demod_Spectrum->setZoomMode(true);
+    demod_Spectrum->setXZoomMode(true);
+    demod_Spectrum->setSignalMode(false);
+    demod_Spectrum->xAxis->setRange(0, 83.33*1e6);
+    demod_Spectrum->yAxis->setRange(-130,130);
+
+    demod_Scatter= new CustomPlotZoom;
+//    demod_Scatter->legend->setVisible(true);
+    demod_Scatter->legend->setFont(QFont("Helvetica", 9));
+    demod_Scatter->legend->setRowSpacing(-3);
+    demod_Scatter->addGraph();
+    demod_Scatter->graph()->rescaleAxes(true);
+    demod_Scatter->graph()->setPen(QPen(Qt::white, 1));
+    //demod_Scatter->graph()->setName(QCPScatterStyle::staticMetaObject.enumerator(QCPScatterStyle::staticMetaObject.indexOfEnumerator("ScatterShape")).valueToKey(shapes.at(i)));
+    demod_Scatter->graph()->setLineStyle(QCPGraph::lsLine);
+    demod_Scatter->rescaleAxes();
+    demod_Scatter->xAxis->setTicks(false);
+    demod_Scatter->yAxis->setTicks(false);
+    demod_Scatter->xAxis->setTickLabels(false);
+    demod_Scatter->yAxis->setTickLabels(false);
+    // make top right axes clones of bottom left axes:
+    demod_Scatter->axisRect()->setupFullAxesBox();
+    demod_Scatter->xAxis->setRange(0, 83.33*1e6);
+    demod_Scatter->yAxis->setRange(-130,130);
+    ui->demod_Scatter->addWidget(demod_Scatter);
+    ui->demod_Spectrum->addWidget(demod_Spectrum);
+    ui->demod_PhaseErr->addWidget(demod_PhaseErr);
+    ui->demod_TimeDomain->addWidget(demod_TimeDomain);
+
+    for (int var = 0; var < nOSD_DEMOD_TYPE ;var++) {
+        ui->combo_FF_Demodename->addItem(g_strOSD_DEMOD_TYPE[var]);
+    }
 }
 bool Mode_FF::LoadDataFile(QString path)
 {
-    m_pConfig->OpenInputFile(path);
+    if(m_pConfig->OpenInputFile(path))
+        pw_ui->lbl_filename_demod->setText(path);
     return m_pConfig->m_bLoadedFileInput;
 }
 bool Mode_FF::RunMode(void)
@@ -20,11 +138,15 @@ bool Mode_FF::RunMode(void)
 }
 bool Mode_FF::StartSpectrum(void)
 {
+    if(!m_bStartSpectrum)
+    {
         m_pConfig->GotoFileStartPos();
         StartSpectrumThread();
         m_bStartSpectrum = true;
         m_bPauseSpectrum = false;
         m_bStartSelect = false;
+    }
+
   return m_bStartSpectrum;
 }
 bool Mode_FF::StartSpectrumThread(void)
@@ -121,14 +243,88 @@ bool Mode_FF::SetParameters(FF_ALL_SETTING stSettingFF)
 
     return true;
 }
-double  Mode_FF::FcEstimate(double x,double y)
+void Mode_FF::DrawSpectrum(QVector<double> X,QVector<double> Y)
 {
+        demod_Spectrum->graph(0)->setData(X,Y);
+        demod_Spectrum->replot(QCustomPlot::rpImmediate);
 
+        demod_PhaseErr->graph(0)->setData(X,Y);
+        demod_PhaseErr->replot(QCustomPlot::rpImmediate);
+
+
+        demod_TimeDomain->graph(0)->setData(X,Y);
+        demod_TimeDomain->replot(QCustomPlot::rpImmediate);
+
+        demod_Scatter->graph(0)->setData(X,Y);
+        demod_Scatter->replot(QCustomPlot::rpImmediate);
+
+
+
+}
+void Mode_FF::CalculateSpectrum(QVector<double> m_pdOutFFT)
+{
+    for (int i=0; i< m_iSizeSpectrum; i++)
+    {
+
+        double dOffsetSpectrum = m_pConfig->GetOffsetSpectrum();
+        int iIndex = i + m_iIndexStartSpectrum;
+        if((iIndex < 0) || (iIndex >= m_stSettingFF.stFFT.iSizeFFT))
+            continue;
+        double dValue =10*log10(pow(abs(m_pdOutFFT[i + m_iIndexStartSpectrum]),2))+dOffsetSpectrum;
+
+        m_bUseAverageSpectrum=true;
+        if(m_bUseAverageSpectrum)
+            m_pdSpectrum_Y[i] = 0.9*m_pdSpectrum_Y[i] + 0.1*dValue;
+        else
+            m_pdSpectrum_Y[i] = dValue;
+
+        if(m_bShowMaxHoldSpectrum)
+        {
+            if(m_pdSpectrum_Y[i] > m_pdMaxHoldSpectrum[i])
+                m_pdMaxHoldSpectrum[i] = m_pdSpectrum_Y[i];
+        }
+        m_pdSpectrum_X[i]=((float)i*((float)(m_pConfig->m_stInputFile.dSamplingFrequency*1e6))/(float)m_stSettingFF.stFFT.iSizeFFT);
+    }
+}
+bool Mode_FF::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
+{
+    pw_ui=ui;
+    m_pConfig = pConfig;
+    FF_ALL_SETTING stSettingFF;
+    stSettingFF.stFFT.iSizeFFT = 1*4096;
+    stSettingFF.stSpectrum.dStartFrequency = 0;
+    stSettingFF.stSpectrum.dStopFrequency = m_pConfig->m_stInputFile.dSamplingFrequency / 2.0;
+    stSettingFF.stSpectrum.dMaxLevel = 0;
+    stSettingFF.stSpectrum.dMinLevel = -150;
+    stSettingFF.stSpectrum.dOverlapRatio = 0.0;
+    stSettingFF.stSpectrum.bUint_dBm = true;
+
+    InitGraph(pw_ui);
+
+
+
+    SetParameters(stSettingFF);
+    return true;
+}
+void Mode_FF::PlaySpectrum()
+{
+        if(m_pConfig->ReadFromInputFile(FileReadBuff, m_stSettingFF.stFFT.iSizeFFT*2))
+        {
+            m_pConfig->CalcFFT(FileReadBuff,m_pdOutFFT);
+            CalculateSpectrum(m_pdOutFFT);
+            DrawSpectrum(m_pdSpectrum_X,m_pdSpectrum_Y);
+        }
+
+
+}
+void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
+{
+    ESTIMATE_PARAM stParamEstimate;
     if(!m_pConfig->m_bLoadedFileInput)
-        return -1;
+        return ;
 
     if(m_pConfig->IsEndOfFile())
-        return -1;
+        return ;
 
     m_pConfig->GotoFileStartPos();
     QVector<double> ReadBuff;
@@ -144,8 +340,6 @@ double  Mode_FF::FcEstimate(double x,double y)
             qDebug("Error in File Size");
 
         m_pConfig->ReadFromInputFile(ReadBuff, 10*iSizeFFT);
-
-
         QVector<double> FFT_in(iSizeFFT);
         QVector<double> FFT_out(iSizeFFT);
         QVector<double> Amp_Sig(iSizeFFT);
@@ -156,8 +350,7 @@ double  Mode_FF::FcEstimate(double x,double y)
         ippsZero_64f(&Sum_Amp_Sig[0],iSizeFFT);
 
         int Order_FFT=log10(iSizeFFT)/log10(2);
-//        if(!m_pConfig->IsFFTCreated())
-            m_pConfig->CreateFFT(Order_FFT,m_stSettingFF.stFFT.iSizeFFT);
+         m_pConfig->CreateFFT(Order_FFT,m_stSettingFF.stFFT.iSizeFFT);
 
         for (int k = 0; k < 10; k++)
         {
@@ -178,24 +371,13 @@ double  Mode_FF::FcEstimate(double x,double y)
         ippsCopy_64f(&Amp_Sig[0],NF,iSizeFFT/2);
         double FS=Fs;
         double RBW=FS/iSizeFFT;
-        int Start_Index=x/RBW;
-        int Stop_Index=y/RBW;
+        int Start_Index=d_xRuler/RBW;
+        int Stop_Index=d_yRuler/RBW;
         int *Buffer_EST;double *Temp_Ma;
         Buffer_EST=new int[Stop_Index-Start_Index+1];
-
-//        Ipp64f *pDlySrc,*pDlyDst;
-//        Ipp8u *pBuffer;
-//        pBuffer = ippsMalloc_8u(iSizeFFT);
-//        pDlySrc = ippsMalloc_64f(iSizeFFT);
-//        pDlyDst = ippsMalloc_64f(iSizeFFT);
-//        ippsZero_8u(pBuffer,iSizeFFT);
-//        ippsZero_64f(pDlySrc,iSizeFFT);
-//        ippsZero_64f(pDlyDst,iSizeFFT);
-//        //================================-  Fc medain Filtering   =================================
+//================================-  Fc medain Filtering   =================================
         int maskSize = (Stop_Index-Start_Index)/10;
 //        ippsFilterMedian_64f_I(Amp_Sig,iSizeFFT, maskSize,pDlySrc,pDlyDst,pBuffer);
-
-//        //-----------------------------------------------------
 
         double dMax;
         double dMin;
@@ -237,74 +419,65 @@ double  Mode_FF::FcEstimate(double x,double y)
             if (2*Amp_Sig[k]<summ/(k-Start_Index+1))
                 break;
         }
-
-
         int m_Fc_indx;
-        m_dEstimatedFc_New = ((newStop+newStart)*RBW/2) / 1e6; // Fc medain Filtering
-        return m_dEstimatedFc_New;
+        stParamEstimate.dFC=((newStop+newStart)*RBW/2) / 1e6; // Fc medain Filtering
+        if(p < 0.5 * (Stop_Index - Start_Index))
+        {
+            summ = 0;
+            p = 0;
 
+            for (int k = Start_Index; k < Stop_Index+1; k++)
+            {
+                summ = summ+Amp_Sig[k];
+                p = p + 1;
+            }
 
-}
-void Mode_FF::DrawSpectrum(QVector<double> X,QVector<double> Y)
-{
-        pw_demod_Spectrum->graph(0)->setData(X,Y);
-        pw_demod_Spectrum->replot(QCustomPlot::rpImmediate);
-
-}
-void Mode_FF::CalculateSpectrum(QVector<double> m_pdOutFFT)
-{
-    for (int i=0; i< m_iSizeSpectrum; i++)
-    {
-
-        double dOffsetSpectrum = m_pConfig->GetOffsetSpectrum();
-        int iIndex = i + m_iIndexStartSpectrum;
-        if((iIndex < 0) || (iIndex >= m_stSettingFF.stFFT.iSizeFFT))
-            continue;
-        double dValue =10*log10(pow(abs(m_pdOutFFT[i + m_iIndexStartSpectrum]),2))+dOffsetSpectrum;
-
-        m_bUseAverageSpectrum=true;
-        if(m_bUseAverageSpectrum)
-            m_pdSpectrum_Y[i] = 0.9*m_pdSpectrum_Y[i] + 0.1*dValue;
+            m_DNewBandwidth = (d_yRuler - d_xRuler) * g_iINPUT_FREQ_UNIT[(int)m_pConfig->m_stInputFile.enFreqUnit];
+            m_Fc_indx=(Stop_Index + Start_Index)/2;
+        }
         else
-            m_pdSpectrum_Y[i] = dValue;
+            m_DNewBandwidth = (newStop-newStart+1)* RBW * 1.3; // New BW with Medain Filtering
 
-        if(m_bShowMaxHoldSpectrum)
+        double Psig=0;
+        Psig = summ / p;
+
+        double Pnoise=Amp_Sig[Start_Index-1]+Amp_Sig[Start_Index-2]+Amp_Sig[Start_Index-3]+Amp_Sig[Start_Index-4]+Amp_Sig[Start_Index-5]+Amp_Sig[Stop_Index+1]+Amp_Sig[Stop_Index+2]+Amp_Sig[Stop_Index+3]+Amp_Sig[Stop_Index+4]+Amp_Sig[Stop_Index+5];
+        Pnoise=Pnoise/10;
+
+//        delete [] Amp_Sig;
+//        delete [] Buffer_EST;
+//        delete [] Sum_Amp_Sig;
+        double Noise_floor;
+        ippsSortAscend_64f_I(NF,iSizeFFT/2);
+        ippsMean_64f(NF,iSizeFFT/2,&Noise_floor);
+        int res=iSizeFFT/2; int cnt;
+        for (int j = 0; j < 100; j++)
         {
-            if(m_pdSpectrum_Y[i] > m_pdMaxHoldSpectrum[i])
-                m_pdMaxHoldSpectrum[i] = m_pdSpectrum_Y[i];
+            cnt=0;
+
+            for (int k =0; k < iSizeFFT/2; k++)
+            {
+                if (NF[k]>2*Noise_floor)
+                {
+                    NF[k]=0;
+                    cnt++;
+                }
+
+            }
+            res=res-cnt;
+            ippsSum_64f(NF,iSizeFFT/2, &Noise_floor);
+            Noise_floor=Noise_floor/res;
+            if (cnt==0)
+            {
+                break;
+            }
         }
 
-        x_Freq = ((float)i*((float)(m_pConfig->m_stInputFile.dSamplingFrequency*1e6))/(float)m_stSettingFF.stFFT.iSizeFFT);
-        m_pdSpectrum_X[i]=x_Freq;
-    }
-     qWaitSpecShowed.wakeOne();
+        delete [] NF;
+
+
+        SNR_New=10*log10(Psig/Pnoise);
+        stParamEstimate.dSNR=SNR_New;
+        FC_Out = stParamEstimate.dFC;
 }
-bool Mode_FF::Initialize(Configuration *pConfig)
-{
 
-    m_pConfig = pConfig;
-    FF_ALL_SETTING stSettingFF;
-    stSettingFF.stFFT.iSizeFFT = 1*4096;
-    stSettingFF.stSpectrum.dStartFrequency = 0;
-    stSettingFF.stSpectrum.dStopFrequency = m_pConfig->m_stInputFile.dSamplingFrequency / 2.0;
-    stSettingFF.stSpectrum.dMaxLevel = 0;
-    stSettingFF.stSpectrum.dMinLevel = -150;
-    stSettingFF.stSpectrum.dOverlapRatio = 0.0;
-    stSettingFF.stSpectrum.bUint_dBm = true;
-
-    SetParameters(stSettingFF);
-    return true;
-}
-void Mode_FF::PlaySpectrum()
-{
-        if(m_pConfig->ReadFromInputFile(FileReadBuff, m_stSettingFF.stFFT.iSizeFFT*2))
-        {
-            m_pConfig->CalcFFT(FileReadBuff,m_pdOutFFT);
-            CalculateSpectrum(m_pdOutFFT);
-            DrawSpectrum(m_pdSpectrum_X,m_pdSpectrum_Y);
-            if(b_Analyzed)
-               emit sig_ScatterdataReady(ScatterBuff);
-        }
-
-
-}

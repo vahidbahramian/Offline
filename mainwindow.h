@@ -9,6 +9,11 @@
 #include "mode_ff.h"
 #include "ModeControl.h"
 
+#if defined(FCESTIMATOR_LIBRARY)
+#  define FCESTIMATORSHARED_EXPORT Q_DECL_EXPORT
+#else
+#  define FCESTIMATORSHARED_EXPORT Q_DECL_IMPORT
+#endif
 
 
 namespace Ui {
@@ -30,14 +35,6 @@ public:
     QVector<double> data;
     double *data_FFT;
     bool init();
-    QWaitCondition qWaitshow;
-    QMutex mutexdataReady;
-
-
-private slots:
-     void DrawSpectrum(QVector<double> X, QVector<double> Y);
-signals:
-    void Sig();
 
 
 private slots:
@@ -48,15 +45,17 @@ private slots:
      void on_btn_pause_3_clicked();
      void on_MainWindow_destroyed();
      void on_tabWidget_currentChanged(int index);
-     CustomPlotZoom * GetSpectrum(int ID);
      void on_check_signed_sm_clicked();
-
-
-
      void on_Btn_FF_FCEstimate_clicked();
-
-
      void on_Btn_Setting_Apply_clicked();
+     void on_Btn_FF_AutoEst_clicked();
+
+     void on_Btn_SM_FIleLoad_clicked();
+
+     void on_Btn_SM_PlaySPectrum_clicked();
+
+
+     void on_combo_sm_FilterResponse_currentIndexChanged(int index);
 
 public:
     Ui::MainWindow *ui;
@@ -75,20 +74,12 @@ public:
     CustomPlotZoom *signalanalyzer_WaterWall;
 
 
-    CustomPlotZoom *demod_Spectrum;
-    CustomPlotZoom *demod_PhaseErr;
-    CustomPlotZoom *demod_TimeDomain;
-    CustomPlotZoom *demod_Scatter;
 
     CustomPlotZoom *ofdm_Scatter;
     CustomPlotZoom *ofdm_Spectrum;
     CustomPlotZoom *ofdm_PhaseError;
 
-    CustomPlotZoom *signalManipulation_Spectrum;
-    CustomPlotZoom *signalManipulation_FilterResponse;
-    CustomPlotZoom *signalManipulation_Spectrum2;
 
-    double* SpectrumBuffTemp;
 
     QPen penyellow;
     QPen penGreeen;
@@ -104,19 +95,13 @@ public:
     bool ChangeMode(OSA_MAIN_MODES enMode);
     OSA_MAIN_MODES GetLastMode(void){return m_enLastMode;}
     OSA_MAIN_MODES m_enLastMode;
-//    Mode_SA			*pm_modeSA;
-//    Mode_FF			*m_pmodeFF;
-//    Mode_FH			*m_pmodeFH;
-//    Mode_DSSS		*m_pmodeDS;
-//    Mode_OFDM		*m_pmodeOFDM;
-//    Mode_SM			*m_pmodeSM;
 
-    //    Mode_SA			*pm_modeSA;
+    //    Mode_SA			*m_modeSA;
         Mode_FF			m_modeFF;
-    //    Mode_FH			*m_pmodeFH;
-    //    Mode_DSSS		*m_pmodeDS;
-    //    Mode_OFDM		*m_pmodeOFDM;
-    //    Mode_SM			*m_pmodeSM;
+    //    Mode_FH			*m_modeFH;
+    //    Mode_DSSS		*m_modeDS;
+    //    Mode_OFDM		*m_modeOFDM;
+        Mode_SM			m_modeSM;
 
 
 

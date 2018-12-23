@@ -6,8 +6,7 @@
 #include <QMutex>
 #include "QTimer"
 #include "customplotzoom.h"
-
-
+#include "ui_mainwindow.h"
 #include <vector>
 #include "configuration.h"
 
@@ -22,18 +21,19 @@ class Mode_FF : public QWidget
 {
     Q_OBJECT
 
-    QThread thread;
 public slots:
     void PlaySpectrum();
 
 public:
     Mode_FF();
-    CustomPlotZoom *pw_demod_Spectrum;
-    CustomPlotZoom *pw_demod_PhaseErr;
-    CustomPlotZoom *pw_demod_TimeDomain;
-    CustomPlotZoom *pw_demod_Scatter;
+    CustomPlotZoom *demod_Spectrum;
+    CustomPlotZoom *demod_PhaseErr;
+    CustomPlotZoom *demod_TimeDomain;
+    CustomPlotZoom *demod_Scatter;
 
-    bool Initialize(Configuration *pConfig);
+    Ui::MainWindow *pw_ui;
+    bool Initialize(Configuration *pConfig, Ui::MainWindow *ui);
+    void InitGraph(Ui::MainWindow *ui);
     bool RunMode(void);
     void CloseMode(void);
     void Close(void);
@@ -43,9 +43,7 @@ public:
     bool SetParameters(FF_ALL_SETTING stSettingFF);
     void CalculateSpectrum(QVector<double> m_pdOutFFT);
     void DrawSpectrum(QVector<double> X,QVector<double> Y);
-    double FcEstimate(double x,double y);
-    QWaitCondition qWaitSpecShowed;
-    QMutex mutexSpecShowed;
+    void ParamEstimate(double d_xRuler, double d_yRuler, double &FC_Out);
 
 private:
     bool StartSpectrumThread(void);
@@ -69,14 +67,9 @@ public:
     double m_dEstimatedRs_New;
     double m_dEstimatedRs_uqpsk;
     double SNR_New;
-    int readRegValsue;
-
-
-
-signals:
-    void sig_SpecdataReady(QVector<double> ,QVector<double> );
-    void sig_ScatterdataReady(QVector<double> );
- public:
+    double m_DNewBandwidth;
+    int iAmr_out_Index;
+public:
     QString name;
     QVector<double> m_pdOutFFT;
     QVector<double> m_pdSpectrum_X;
@@ -85,7 +78,6 @@ signals:
     QVector<double> m_pdMaxHoldPhaseErr;
     QVector<double> ScatterBuff;
     QVector<double> FileReadBuff;
-    double x_Freq,y_lvl;
 
 public : //Spectrum
     int		m_iSizeSpectrum;
@@ -98,6 +90,7 @@ public : //Spectrum
     bool b_Analyzed;
     bool killthread;
     FF_ALL_SETTING m_stSettingFF;
+    ESTIMATE_PARAM m_stEstimateParam;
     bool m_bInSettingMode;
      QTimer *timer;
 

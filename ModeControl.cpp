@@ -15,7 +15,7 @@ bool CModeControl::Initialize(Configuration *pConfig)
     m_mode_ff=new Mode_FF();
 
 //	bResult = m_modeSA.Initialize(pConfig);
-  bResult = m_mode_ff->Initialize(pConfig);
+//  bResult = m_mode_ff->Initialize(pConfig);
 //	bResult = m_modeFH.Initialize(pConfig);
 //	bResult = m_modeDS.Initialize(pConfig);
 //	bResult = m_modeOFDM.Initialize(pConfig);

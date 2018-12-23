@@ -24,7 +24,7 @@
        <enum>QTabWidget::West</enum>
       </property>
       <property name="currentIndex">
-       <number>6</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="tab_SA">
        <attribute name="title">
@@ -459,7 +459,7 @@ padding-left:5px;</string>
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout_8">
              <item>
-              <widget class="QPushButton" name="btn_play_sm">
+              <widget class="QPushButton" name="Btn_SM_PlaySPectrum">
                <property name="toolTip">
                 <string>Play</string>
                </property>
@@ -553,7 +553,7 @@ padding-top:5px;</string>
              <string>Bit Stream Settings</string>
             </property>
            </widget>
-           <widget class="QComboBox" name="combo_manipulation_sm">
+           <widget class="QComboBox" name="combo_sm_FilterResponse">
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -562,16 +562,6 @@ padding-top:5px;</string>
               <height>22</height>
              </rect>
             </property>
-            <item>
-             <property name="text">
-              <string>FIR Filter</string>
-             </property>
-            </item>
-            <item>
-             <property name="text">
-              <string>IIR Filter</string>
-             </property>
-            </item>
            </widget>
            <widget class="Line" name="line_8">
             <property name="geometry">
@@ -629,7 +619,7 @@ padding-top:5px;</string>
              </item>
             </layout>
            </widget>
-           <widget class="QPushButton" name="btn_open_sm">
+           <widget class="QPushButton" name="Btn_SM_FIleLoad">
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -862,7 +852,7 @@ padding-left:5px;</string>
            <property name="frameShadow">
             <enum>QFrame::Raised</enum>
            </property>
-           <widget class="QPushButton" name="pushButton_8">
+           <widget class="QPushButton" name="Btn_FF_AutoEst">
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -916,7 +906,7 @@ padding-left:5px;</string>
               </widget>
              </item>
              <item row="1" column="1">
-              <widget class="QLineEdit" name="lineEdit_2"/>
+              <widget class="QLineEdit" name="txt_RSEstimate"/>
              </item>
              <item row="2" column="0">
               <widget class="QPushButton" name="pushButton_11">
@@ -926,7 +916,7 @@ padding-left:5px;</string>
               </widget>
              </item>
              <item row="2" column="1">
-              <widget class="QLineEdit" name="lineEdit_3"/>
+              <widget class="QLineEdit" name="txt_AMREstimate"/>
              </item>
             </layout>
            </widget>
@@ -1074,7 +1064,7 @@ padding-top:5px;</string>
              <string>Bit Stream Settings</string>
             </property>
            </widget>
-           <widget class="QComboBox" name="comboBox_Demodename">
+           <widget class="QComboBox" name="combo_FF_Demodename">
             <property name="geometry">
              <rect>
               <x>10</x>
@@ -1108,7 +1098,7 @@ padding-top:5px;</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_7">
              <item row="0" column="0">
-              <widget class="QPushButton" name="btn_open_7">
+              <widget class="QPushButton" name="Btn_FileRecord">
                <property name="maximumSize">
                 <size>
                  <width>50</width>
