@@ -92,3 +92,8 @@ DISTFILES += \
 
 
 
+
+unix:!macx: LIBS += -L$$PWD/FCLib/ -lFcEstimator
+
+INCLUDEPATH += $$PWD/FCLib
+DEPENDPATH += $$PWD/FCLib
