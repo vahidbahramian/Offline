@@ -96,6 +96,7 @@ public:
 
     void FilterFIR(QVector<double> In, QVector<double> &Out);
     void FilterIIR(QVector<double> In,QVector<double> &Out);
+    void Carrier_shift();
 private:
     bool StartSpectrumThread(void);
     void StopSpectrumThread(void);

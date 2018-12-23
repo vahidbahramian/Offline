@@ -371,3 +371,7 @@ void Mode_SM::FilterIIR(QVector<double> In, QVector<double> &Out)
    // m_iSizeSignalNxt = m_stSettingSM.stFFTPre.iSizeFFT;
 //    m_filterIIR.Filter(m_pdSignal, m_iSizeSignalNxt, m_pdSignalNxt);
 }
+void Mode_SM::Carrier_shift()
+{
+
+}
