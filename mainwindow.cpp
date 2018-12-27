@@ -20,22 +20,23 @@ MainWindow::MainWindow(QWidget *parent) :
 }
 MainWindow::~MainWindow()
 {
+
     delete ui;
 }
 bool MainWindow::ModeInitialize(Configuration *pConfig)
 {
     bool bResult = false;
 
-//	bResult = m_modeSA.Initialize(pConfig);
-  bResult = m_modeFF.Initialize(pConfig,ui);
+    bResult = m_modeSA.Initialize(pConfig,ui);
+    bResult = m_modeFF.Initialize(pConfig,ui);
 //	bResult = m_modeFH.Initialize(pConfig);
-//	bResult = m_modeDS.Initialize(pConfig);
+    bResult = m_modeDS.Initialize(pConfig,ui);
 //	bResult = m_modeOFDM.Initialize(pConfig);
-  bResult = m_modeSM.Initialize(pConfig,ui);
+    bResult = m_modeSM.Initialize(pConfig,ui);
 //	bResult = m_modeSSA.Initialize(pConfig);
 
 
-//	ChangeMode(OMM_SA);
+    ChangeMode(OMM_SM);
 
     return true;
 }
@@ -56,39 +57,43 @@ bool MainWindow::ChangeMode(OSA_MAIN_MODES enMode)
     //------------------------------------------------------------------
     //--- Stop Last Mode -----------------------------------------------
     //------------------------------------------------------------------
-    /*if(m_enLastMode == OMM_SA)
+    if(m_enLastMode == OMM_SA)
         m_modeSA.CloseMode();
-    else*//*if(m_enLastMode == OMM_FF)
-        m_modeFF.CloseMode();*/
+    else if(m_enLastMode == OMM_FF)
+        m_modeFF.CloseMode();
 //	else if(m_enLastMode == OMM_FH)
 //		m_modeFH.CloseMode();
 //	else if(m_enLastMode == OMM_DS)
 //		m_modeDS.CloseMode();
 //	else if(m_enLastMode == OMM_OFDM)
 //		m_modeOFDM.CloseMode();
-//	else if(m_enLastMode == OMM_SM)
-//		m_modeSM.CloseMode();
+    else if(m_enLastMode == OMM_SM)
+        m_modeSM.CloseMode();
 
     //------------------------------------------------------------------
     //--- Start New Mode -----------------------------------------------
     //------------------------------------------------------------------
     bool bResult = true;
-    /*if(enMode == OMM_SA)
+   if(enMode == OMM_SA)
         bResult = m_modeSA.RunMode();
-    else*/// if(enMode == OMM_FF)
-    //	bResult = m_modeFF.RunMode();
+    else if(enMode == OMM_FF)
+        bResult = m_modeFF.RunMode();
 //	else if(enMode == OMM_FH)
 //		bResult = m_modeFH.RunMode();
 //	else if(enMode == OMM_DS)
 //		bResult = m_modeDS.RunMode();
 //	else if(enMode == OMM_OFDM)
 //		bResult = m_modeOFDM.RunMode();
-//	else if(enMode == OMM_SM)
-//		bResult = m_modeSM.RunMode();
+    else if(enMode == OMM_SM)
+        bResult = m_modeSM.RunMode();
 
 
     if(bResult)
+    {
+        ui->tabWidget->setCurrentIndex(OSA_MAIN_MODES(enMode));
+        ui->tabWidget->show();
         m_enLastMode = enMode;
+    }
     else
         qDebug("Error in selected mode");
 
@@ -283,153 +288,8 @@ void MainWindow::initGrphices()
     fhss_Scatter->axisRect()->setupFullAxesBox();
     //---------------------------------------------------
 
-    dsss_Spectrum = new CustomPlotZoom;
-    dsss_Spectrum->IsPSD=true;
-    dsss_Spectrum->addGraph();
-    dsss_Spectrum->addGraph();
-    dsss_Spectrum->xAxis->setBasePen(QPen(Qt::white, 1));
-    dsss_Spectrum->yAxis->setBasePen(QPen(Qt::white, 1));
-    dsss_Spectrum->xAxis->setTickPen(QPen(Qt::white, 1));
-    dsss_Spectrum->yAxis->setTickPen(QPen(Qt::white, 1));
-    dsss_Spectrum->xAxis->setSubTickPen(QPen(Qt::white, 1));
-    dsss_Spectrum->yAxis->setSubTickPen(QPen(Qt::white, 1));
-    dsss_Spectrum->xAxis->setTickLabelColor(Qt::white);
-    dsss_Spectrum->yAxis->setTickLabelColor(Qt::white);
-    dsss_Spectrum->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    dsss_Spectrum->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    dsss_Spectrum->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    dsss_Spectrum->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    dsss_Spectrum->xAxis->grid()->setSubGridVisible(true);
-    dsss_Spectrum->yAxis->grid()->setSubGridVisible(true);
-    dsss_Spectrum->xAxis->grid()->setZeroLinePen(Qt::NoPen);
-    dsss_Spectrum->yAxis->grid()->setZeroLinePen(Qt::NoPen);
-    dsss_Spectrum->xAxis->setUpperEnding(QCPLineEnding::esNone);
-    dsss_Spectrum->yAxis->setUpperEnding(QCPLineEnding::esNone);
-    dsss_Spectrum->IsDemoduling=false;
-    dsss_Spectrum->setZoomMode(true);
-    dsss_Spectrum->setXZoomMode(true);
-    dsss_Spectrum->setSignalMode(false);
 
-    dsss_AutoCorr=new CustomPlotZoom;
-    dsss_AutoCorr->IsPSD=true;
-    dsss_AutoCorr->addGraph();
-    dsss_AutoCorr->addGraph();
-    dsss_AutoCorr->xAxis->setBasePen(QPen(Qt::white, 1));
-    dsss_AutoCorr->yAxis->setBasePen(QPen(Qt::white, 1));
-    dsss_AutoCorr->xAxis->setTickPen(QPen(Qt::white, 1));
-    dsss_AutoCorr->yAxis->setTickPen(QPen(Qt::white, 1));
-    dsss_AutoCorr->xAxis->setSubTickPen(QPen(Qt::white, 1));
-    dsss_AutoCorr->yAxis->setSubTickPen(QPen(Qt::white, 1));
-    dsss_AutoCorr->xAxis->setTickLabelColor(Qt::white);
-    dsss_AutoCorr->yAxis->setTickLabelColor(Qt::white);
-    dsss_AutoCorr->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    dsss_AutoCorr->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    dsss_AutoCorr->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    dsss_AutoCorr->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    dsss_AutoCorr->xAxis->grid()->setSubGridVisible(true);
-    dsss_AutoCorr->yAxis->grid()->setSubGridVisible(true);
-    dsss_AutoCorr->xAxis->grid()->setZeroLinePen(Qt::NoPen);
-    dsss_AutoCorr->yAxis->grid()->setZeroLinePen(Qt::NoPen);
-    dsss_AutoCorr->xAxis->setUpperEnding(QCPLineEnding::esNone);
-    dsss_AutoCorr->yAxis->setUpperEnding(QCPLineEnding::esNone);
-    dsss_AutoCorr->IsDemoduling=false;
-    dsss_AutoCorr->setZoomMode(true);
-    dsss_AutoCorr->setXZoomMode(true);
-    dsss_AutoCorr->setSignalMode(false);
-
-    dsss_Welch=new CustomPlotZoom;
-    dsss_Welch->IsPSD=true;
-    dsss_Welch->addGraph();
-    dsss_Welch->addGraph();
-    dsss_Welch->xAxis->setBasePen(QPen(Qt::white, 1));
-    dsss_Welch->yAxis->setBasePen(QPen(Qt::white, 1));
-    dsss_Welch->xAxis->setTickPen(QPen(Qt::white, 1));
-    dsss_Welch->yAxis->setTickPen(QPen(Qt::white, 1));
-    dsss_Welch->xAxis->setSubTickPen(QPen(Qt::white, 1));
-    dsss_Welch->yAxis->setSubTickPen(QPen(Qt::white, 1));
-    dsss_Welch->xAxis->setTickLabelColor(Qt::white);
-    dsss_Welch->yAxis->setTickLabelColor(Qt::white);
-    dsss_Welch->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    dsss_Welch->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    dsss_Welch->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    dsss_Welch->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    dsss_Welch->xAxis->grid()->setSubGridVisible(true);
-    dsss_Welch->yAxis->grid()->setSubGridVisible(true);
-    dsss_Welch->xAxis->grid()->setZeroLinePen(Qt::NoPen);
-    dsss_Welch->yAxis->grid()->setZeroLinePen(Qt::NoPen);
-    dsss_Welch->xAxis->setUpperEnding(QCPLineEnding::esNone);
-    dsss_Welch->yAxis->setUpperEnding(QCPLineEnding::esNone);
-    dsss_Welch->IsDemoduling=false;
-    dsss_Welch->setZoomMode(true);
-    dsss_Welch->setXZoomMode(true);
-    dsss_Welch->setSignalMode(false);
-
-//-----
-    dsss_Scatter=new CustomPlotZoom;
-    dsss_Scatter->legend->setVisible(true);
-    dsss_Scatter->legend->setFont(QFont("Helvetica", 9));
-    dsss_Scatter->legend->setRowSpacing(-3);
-    dsss_Scatter->addGraph();
-    dsss_Scatter->graph()->rescaleAxes(true);
-    dsss_Scatter->graph()->setPen(QPen(Qt::white, 1));
-    //dsss_Scatter->graph()->setName(QCPScatterStyle::staticMetaObject.enumerator(QCPScatterStyle::staticMetaObject.indexOfEnumerator("ScatterShape")).valueToKey(shapes.at(i)));
-    dsss_Scatter->graph()->setLineStyle(QCPGraph::lsLine);
-    dsss_Scatter->rescaleAxes();
-    dsss_Scatter->xAxis->setTicks(false);
-    dsss_Scatter->yAxis->setTicks(false);
-    dsss_Scatter->xAxis->setTickLabels(false);
-    dsss_Scatter->yAxis->setTickLabels(false);
-    // make top right axes clones of bottom left axes:
-    dsss_Scatter->axisRect()->setupFullAxesBox();
     //---------------------------------------------------
-
-    signalanalyzer_Spectrum = new CustomPlotZoom;
-    signalanalyzer_Spectrum->IsPSD=true;
-    signalanalyzer_Spectrum->addGraph();
-    signalanalyzer_Spectrum->addGraph();
-    signalanalyzer_Spectrum->xAxis->setBasePen(QPen(Qt::white, 1));
-    signalanalyzer_Spectrum->yAxis->setBasePen(QPen(Qt::white, 1));
-    signalanalyzer_Spectrum->xAxis->setTickPen(QPen(Qt::white, 1));
-    signalanalyzer_Spectrum->yAxis->setTickPen(QPen(Qt::white, 1));
-    signalanalyzer_Spectrum->xAxis->setSubTickPen(QPen(Qt::white, 1));
-    signalanalyzer_Spectrum->yAxis->setSubTickPen(QPen(Qt::white, 1));
-    signalanalyzer_Spectrum->xAxis->setTickLabelColor(Qt::white);
-    signalanalyzer_Spectrum->yAxis->setTickLabelColor(Qt::white);
-    signalanalyzer_Spectrum->xAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    signalanalyzer_Spectrum->yAxis->grid()->setPen(QPen(QColor(140, 140, 140), 1, Qt::DotLine));
-    signalanalyzer_Spectrum->xAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    signalanalyzer_Spectrum->yAxis->grid()->setSubGridPen(QPen(QColor(80, 80, 80), 1, Qt::DotLine));
-    signalanalyzer_Spectrum->xAxis->grid()->setSubGridVisible(true);
-    signalanalyzer_Spectrum->yAxis->grid()->setSubGridVisible(true);
-    signalanalyzer_Spectrum->xAxis->grid()->setZeroLinePen(Qt::NoPen);
-    signalanalyzer_Spectrum->yAxis->grid()->setZeroLinePen(Qt::NoPen);
-    signalanalyzer_Spectrum->xAxis->setUpperEnding(QCPLineEnding::esNone);
-    signalanalyzer_Spectrum->yAxis->setUpperEnding(QCPLineEnding::esNone);
-    signalanalyzer_Spectrum->IsDemoduling=false;
-    signalanalyzer_Spectrum->setZoomMode(true);
-    signalanalyzer_Spectrum->setXZoomMode(true);
-    signalanalyzer_Spectrum->setSignalMode(false);
-
-    signalanalyzer_WaterWall=new CustomPlotZoom;
-    QCPColorMap *colorMap1 = new QCPColorMap(signalanalyzer_WaterWall->xAxis, signalanalyzer_WaterWall->yAxis);
-    signalanalyzer_WaterWall->setInteractions(QCP::iRangeDrag|QCP::iRangeZoom);
-    signalanalyzer_WaterWall->axisRect()->setupFullAxesBox(true);
-    signalanalyzer_WaterWall->xAxis->setLabel("x");
-    signalanalyzer_WaterWall->yAxis->setLabel("y");
-//    QCPColorScale *colorScale = new QCPColorScale(signalanalyzer_WaterWall);
-    signalanalyzer_WaterWall->plotLayout()->addElement(0, 1, colorScale);
-    colorScale->setType(QCPAxis::atRight);
-    colorMap1->setColorScale(colorScale);
-    colorScale->axis()->setLabel("Magnetic Field Strength");
-    colorMap1->setGradient(QCPColorGradient::gpPolar);
-    colorMap1->rescaleDataRange();
-//    QCPMarginGroup *marginGroup = new QCPMarginGroup(signalanalyzer_WaterWall);
-    signalanalyzer_WaterWall->axisRect()->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
-    colorScale->setMarginGroup(QCP::msBottom|QCP::msTop, marginGroup);
-    //---------------------------------------------------
-
-
-
 
     ui->ofdm_Spectrum->addWidget(ofdm_Spectrum);
     ui->ofdm_Scatter->addWidget(ofdm_Scatter);
@@ -440,14 +300,9 @@ void MainWindow::initGrphices()
     ui->fhss_PhaseErr->addWidget(fhss_PhaseErr);
     ui->fhss_WaterWall->addWidget(fhss_WaterWall);
 
-    ui->dsss_Spectrum->addWidget(dsss_Spectrum);
-    ui->dsss_Scatter->addWidget(dsss_Scatter);
-    ui->dsss_Welch->addWidget(dsss_Welch);
-    ui->dsss_AutoCorrelation->addWidget(dsss_AutoCorr);
 
 
-    ui->signalanalyzer_Spectrum->addWidget(signalanalyzer_Spectrum);
-    ui->signalanalyzer_WaterWall->addWidget(signalanalyzer_WaterWall);
+
 
 
 
@@ -484,7 +339,7 @@ void MainWindow::on_MainWindow_destroyed()
 }
 void MainWindow::on_tabWidget_currentChanged(int index)
 {
-    ChangeMode(OMM_FF);
+    ChangeMode(OSA_MAIN_MODES(index));
 }
 void MainWindow::on_check_signed_sm_clicked()
 {
@@ -525,7 +380,7 @@ void MainWindow::on_Btn_Setting_Apply_clicked()
     m_pConfig->ArrangeInputFile(&m_pConfig->m_stInputFile);
 //    m_iMinValue = m_pConfig->m_stInputFile.iMinValueA2D;
 //    m_iMaxValue = m_pConfig->m_stInputFile.iMaxValueA2D;
-    m_pConfig->m_stInputFile.IQ_Input= ui->check_IQ->checkState();
+    m_pConfig->m_stInputFile.bInputIQ= ui->check_IQ->checkState();
 //    OSA_MAIN_MODES m_enCurMode = m_enLastMode;
 //    if(m_enCurMode == OMM_SA)
 //        theApp.m_modeControl.m_modeSA.ReSetParameters();
@@ -560,13 +415,35 @@ void MainWindow::on_Btn_SM_FIleLoad_clicked()
 
 void MainWindow::on_Btn_SM_PlaySPectrum_clicked()
 {
-    if(!m_modeSM.m_bStartSpectrum && m_pConfig->m_bLoadedFileInput)
-        m_modeSM.StartSpectrum();
+    m_modeSM.StartSpectrum();
 
 }
 
 
-void MainWindow::on_combo_sm_FilterResponse_currentIndexChanged(int index)
+
+void MainWindow::on_combo_sm_FilterResponse_activated(int index)
 {
-    m_modeSM.m_stSettingSM.enTypeManipulation == OMT_FILTER_FIR;
+    m_modeSM.SetManipulationType(OSA_MANIPULATE_TYPE(index));
+}
+
+void MainWindow::on_Btn_SM_Stop_clicked()
+{
+    m_modeSM.Close();
+}
+
+void MainWindow::on_Btn_SA_FileLoad_clicked()
+{
+    QString filter = "(*.bin)";
+    InputFilePath = QFileDialog::getOpenFileName(this, "Select a file...", QDir::homePath(), filter);
+    m_modeSA.LoadDataFile(InputFilePath);
+}
+
+void MainWindow::on_Btn_SA_PlaySPectrum_clicked()
+{
+        m_modeSA.StartSpectrum();
+}
+
+void MainWindow::on_btn_SA_stopSpectrum_clicked()
+{
+    m_modeSA.Close();
 }

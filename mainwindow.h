@@ -7,7 +7,9 @@
 #include <QMainWindow>
 #include "configuration.h"
 #include "mode_ff.h"
-#include "ModeControl.h"
+#include "mode_sa.h"
+#include "mode_sm.h"
+#include "mode_dsss.h"
 
 #if defined(FCESTIMATOR_LIBRARY)
 #  define FCESTIMATORSHARED_EXPORT Q_DECL_EXPORT
@@ -55,7 +57,17 @@ private slots:
      void on_Btn_SM_PlaySPectrum_clicked();
 
 
-     void on_combo_sm_FilterResponse_currentIndexChanged(int index);
+
+
+     void on_combo_sm_FilterResponse_activated(int index);
+
+     void on_Btn_SM_Stop_clicked();
+
+     void on_Btn_SA_FileLoad_clicked();
+
+     void on_Btn_SA_PlaySPectrum_clicked();
+
+     void on_btn_SA_stopSpectrum_clicked();
 
 public:
     Ui::MainWindow *ui;
@@ -65,19 +77,12 @@ public:
     CustomPlotZoom *fhss_PhaseErr;
     CustomPlotZoom *fhss_Scatter;
 
-    CustomPlotZoom *dsss_Spectrum;
-    CustomPlotZoom *dsss_Scatter;
-    CustomPlotZoom *dsss_AutoCorr;
-    CustomPlotZoom *dsss_Welch;
-
-    CustomPlotZoom *signalanalyzer_Spectrum;
-    CustomPlotZoom *signalanalyzer_WaterWall;
-
-
 
     CustomPlotZoom *ofdm_Scatter;
     CustomPlotZoom *ofdm_Spectrum;
     CustomPlotZoom *ofdm_PhaseError;
+
+
 
 
 
@@ -88,20 +93,19 @@ public:
     QLinearGradient axisRectGradient;
     int start;
     int stop;
-public:
+private:
     void ThreadSpectrum_Show();
     bool ModeInitialize(Configuration *pConfig);
     void Close(void);
     bool ChangeMode(OSA_MAIN_MODES enMode);
     OSA_MAIN_MODES GetLastMode(void){return m_enLastMode;}
     OSA_MAIN_MODES m_enLastMode;
-
-    //    Mode_SA			*m_modeSA;
-        Mode_FF			m_modeFF;
-    //    Mode_FH			*m_modeFH;
-    //    Mode_DSSS		*m_modeDS;
-    //    Mode_OFDM		*m_modeOFDM;
-        Mode_SM			m_modeSM;
+    Mode_SA			m_modeSA;
+    Mode_FF			m_modeFF;
+//    Mode_FH		m_modeFH;
+    Mode_DSSS		m_modeDS;
+//    Mode_OFDM		m_modeOFDM;
+    Mode_SM			m_modeSM;
 
 
 

@@ -13,14 +13,17 @@
 #include <QDir>
 #include <ipp.h>
 #include <math.h>
-#include <QColor>.h>
+#include <QColor>
 
+#define PI 3.1415926535897932384626433832795
 
+//--- FFT Window types
+enum FFT_WINDOW_TYPE {FWT_NONE, FWT_BOXCAR, FWT_TRIANG, FWT_HAMMING, FWT_HANNING, FWT_BLACKMAN, FWT_FLATTOP, FWT_KAISER};
 #define nOSD_DEMOD_TYPE 37
 #define nINPUT_FILE_char 4
 #define nINPUT_FILE_char 4
 #define nINPUT_FREQ_UNIT 3
-enum OSA_MAIN_MODES {OMM_SA, OMM_FF, OMM_OFDM, OMM_FH, OMM_DS, OMM_SM};
+enum OSA_MAIN_MODES {OMM_SA, OMM_SM, OMM_FF, OMM_DS, OMM_FH, OMM_OFDM};
 enum INPUT_FREQ_UNIT {IFU_H, IFU_K, IFU_M};
 const QString g_strINPUT_FREQ_UNIT[nINPUT_FREQ_UNIT] = {"Hz", "KHz", "MHz"};
 const int g_iINPUT_FREQ_UNIT[nINPUT_FREQ_UNIT] = {1, 1000, 1000000};
@@ -63,18 +66,46 @@ struct SPECTRUM_SETTING
     double	dOverlapRatio;
     bool	bUint_dBm;
 };
+
+struct TIMESIG_SETTING
+{
+    double	dMaxLevel;
+    double	dMinLevel;
+    int		iSampleShow;
+};
+
+struct TIME_CORR_SETTING
+{
+    double	dMaxLevel;
+    double	dMinLevel;
+    int		iSampleShow;
+    int		iCorrSample1;
+    int		iCorrSample2;
+};
+
+struct WATERFALL_SETTING
+{
+    int		iLinePerSecond;
+    bool	bShowUpperLevelThr;
+};
+
+struct HISTOGRAM_SETTING
+{
+    bool	bShowUpperLevelThr;
+};
 struct FFT_SETTING
 {
     int		iSizeFFT;
 //	int		iDftiForwardDomain;
 //	int		iSampleOverlap;
-//	FFT_WINDOW_TYPE enWindowType;
+    int FFT_order;
+    FFT_WINDOW_TYPE enWindowType;
 };
 struct INPUT_FILE_SETTING
 {
     INPUT_FREQ_UNIT enFreqUnit;
     double	dSamplingFrequency;		//in MHz
-    bool IQ_Input;
+    bool bInputIQ;
     double	dMinVoltageA2D;
     double	dMaxVoltageA2D;			//Voltage
 
@@ -195,20 +226,47 @@ public:
     double GetOffsetSpectrum(void);
     double CalcAmplitude(double dDBm);
 
-    bool WriteToSaveFile( QVector<double> *pdData, int iSize);
-    bool WriteToSaveFileIQ( QVector<double> *pdDataI,  QVector<double> *pdDataQ, int iSize);
+    bool WriteToSaveFile( double *pdData, int iSize);
+    bool WriteToSaveFileIQ( double *pdDataI, double *pdDataQ, int iSize);
     void CheckSpectrumLimit(double& dStart, double& dStop);
 
 
     void CreateDemodBitmaps(ALL_DEMOD_BITMAP *pstDemodBitmaps);
-//Proccessing
-    void DestroyFFT();
-    void CreateFFT(int inum, int iSizefft);
-    void CalcFFT(QVector<double> In, QVector<double> &Out);
-    int iSizeFFT;
+
+
+};
+
+class CCalculateFFT
+{
+public:
+    CCalculateFFT();
+    ~CCalculateFFT();
+public:
+    bool SetParameters(FFT_SETTING stSettingFFT);
+    bool CalcFFT(QVector<double> In,QVector<double> &Out);
     bool bFFTCreated;
     bool IsFFTCreated(void){return bFFTCreated;}
-public:
+
+private:
+    void boxcar(int n, double* w);
+    void triang(int n, double* w);
+    void hamming(int n,double* w);
+    void hanning(int n, double* w);
+    void blackman(int n,double* w);
+    void flattop(int n,double* w);
+    void kaiser(int n, double* w,double b);
+    void blackmanHarris(int n,double* w);
+
+    void InitParamFFT(void);
+    void CloseParamFFT(void);
+
+    //--- FFT Parameters
+    FFT_SETTING				m_stSettingFFT;
+    double					*m_pdWindow;
+    double					*m_pdInputBlock;
+
+
+private:
     double           *src, *dst, *dlysrc, *dlydst, *taps, *DATA;
     Ipp64fc *Temp2,*Zeros,*Temp_Sum,*Max_FFT,*RS_Array_Total,*Final_FFT_Buff;
     Ipp8u *pSpec,* workBuffer;
@@ -222,8 +280,7 @@ public:
     int pIndx,*Indexes;
     int pSpecSize,pSpecBufferSize,pBufferSize;
 
+
 };
-
-
 
 #endif // CONFIGURATION_H

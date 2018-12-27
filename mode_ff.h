@@ -49,8 +49,12 @@ private:
     bool StartSpectrumThread(void);
     void StopSpectrumThread(void);
     bool m_bKillThreadSpectrum;
-public:
+private:
     Configuration *m_pConfig;
+    CCalculateFFT m_calcFFT;
+    QTimer *timer;
+    FF_ALL_SETTING m_stSettingFF;
+public:
     bool m_bRunMode;
     bool m_bStartSpectrum;
     bool m_bPauseSpectrum;
@@ -61,15 +65,6 @@ public:
     bool IsPauseSpectrum(void){return m_bPauseSpectrum;}
     bool IsStartSelect(void){return m_bStartSelect;}
 public:
-    QString		m_strMainAddrRecord;
-    QString		m_strNameFileRecord;
-    double m_dEstimatedFc_New;
-    double m_dEstimatedRs_New;
-    double m_dEstimatedRs_uqpsk;
-    double SNR_New;
-    double m_DNewBandwidth;
-    int iAmr_out_Index;
-public:
     QString name;
     QVector<double> m_pdOutFFT;
     QVector<double> m_pdSpectrum_X;
@@ -77,8 +72,8 @@ public:
     QVector<double> m_pdMaxHoldSpectrum;
     QVector<double> m_pdMaxHoldPhaseErr;
     QVector<double> ScatterBuff;
-    QVector<double> FileReadBuff;
-
+    QVector<double> m_pdSignal;
+    bool m_bInSettingMode;
 public : //Spectrum
     int		m_iSizeSpectrum;
     int		m_iIndexStartSpectrum;
@@ -87,12 +82,25 @@ public : //Spectrum
     bool	m_bShowMaxHoldSpectrum;
 
 
+private:
+    QString		m_strMainAddrRecord;
+    QString		m_strNameFileRecord;
+    double m_dEstimatedFc_New;
+    double m_dEstimatedRs_New;
+    double m_dEstimatedRs_uqpsk;
+    double SNR_New;
+    double m_DNewBandwidth;
+    int iAmr_out_Index;
+    CCalculateFFT m_calcFFT_FCEst;
+
+
+
     bool b_Analyzed;
     bool killthread;
-    FF_ALL_SETTING m_stSettingFF;
+
     ESTIMATE_PARAM m_stEstimateParam;
-    bool m_bInSettingMode;
-     QTimer *timer;
+
+
 
 
 };

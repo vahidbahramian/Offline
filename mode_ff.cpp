@@ -9,6 +9,8 @@ void Mode_FF::InitGraph(Ui::MainWindow *ui)
     demod_TimeDomain = new CustomPlotZoom;
     demod_TimeDomain->IsPSD=true;
     demod_TimeDomain->addGraph();
+    demod_TimeDomain->graph(0)->setPen(QPen(Qt::green)); // line color blue for first graph
+    demod_TimeDomain->graph(0)->setBrush(QBrush(QColor(0, 255, 0, 20)));
     demod_TimeDomain->xAxis->setBasePen(QPen(Qt::white, 1));
     demod_TimeDomain->yAxis->setBasePen(QPen(Qt::white, 1));
     demod_TimeDomain->xAxis->setTickPen(QPen(Qt::white, 1));
@@ -69,7 +71,8 @@ void Mode_FF::InitGraph(Ui::MainWindow *ui)
     demod_Spectrum = new CustomPlotZoom;
     demod_Spectrum->IsPSD=true;
     demod_Spectrum->addGraph();
-    demod_Spectrum->addGraph();
+    demod_Spectrum->graph(0)->setPen(QPen(Qt::green)); // line color blue for first graph
+    demod_Spectrum->graph(0)->setBrush(QBrush(QColor(0, 255, 0, 20)));
     demod_Spectrum->xAxis->setBasePen(QPen(Qt::white, 1));
     demod_Spectrum->yAxis->setBasePen(QPen(Qt::white, 1));
     demod_Spectrum->xAxis->setTickPen(QPen(Qt::white, 1));
@@ -170,10 +173,13 @@ void Mode_FF::CloseMode(void)
 void Mode_FF::StopSpectrum(void)
 {
 
-    if(timer->isActive())
-        timer->stop();
-//    if(m_pConfig->IsFFTCreated())
-//        m_pConfig->DestroyFFT();
+    if(m_bStartSpectrum)
+    {
+        if(timer->isActive())
+            timer->stop();
+        m_bStartSpectrum = false;
+        m_bPauseSpectrum = false;
+    }
 }
 void Mode_FF::Close(void)
 {
@@ -195,8 +201,8 @@ bool Mode_FF::SetParameters(FF_ALL_SETTING stSettingFF)
         m_pdMaxHoldSpectrum.clear();
     if(!m_pdMaxHoldPhaseErr.isEmpty())
         m_pdMaxHoldPhaseErr.clear();
-//    if(!FileReadBuff->isEmpty())
-//        FileReadBuff->clear();
+    if(!m_pdSignal.isEmpty())
+        m_pdSignal.clear();
     if(!m_pdOutFFT.isEmpty())
         m_pdOutFFT.clear();
 
@@ -214,11 +220,11 @@ bool Mode_FF::SetParameters(FF_ALL_SETTING stSettingFF)
 
 
     //--- FFT
-//    FileReadBuff = new QVector<double>;
-    FileReadBuff.resize(m_stSettingFF.stFFT.iSizeFFT);
+
+    m_pdSignal.resize(m_stSettingFF.stFFT.iSizeFFT);
     m_pdOutFFT.resize(m_stSettingFF.stFFT.iSizeFFT);
-    if(!m_pConfig->IsFFTCreated())
-        m_pConfig->CreateFFT(12,m_stSettingFF.stFFT.iSizeFFT);
+    if(!m_calcFFT.IsFFTCreated())
+        m_calcFFT.SetParameters(m_stSettingFF.stFFT);
 
 
 
@@ -252,11 +258,11 @@ void Mode_FF::DrawSpectrum(QVector<double> X,QVector<double> Y)
         demod_PhaseErr->replot(QCustomPlot::rpImmediate);
 
 
-        demod_TimeDomain->graph(0)->setData(X,Y);
-        demod_TimeDomain->replot(QCustomPlot::rpImmediate);
+//        demod_TimeDomain->graph(0)->setData(X,Y);
+//        demod_TimeDomain->replot(QCustomPlot::rpImmediate);
 
-        demod_Scatter->graph(0)->setData(X,Y);
-        demod_Scatter->replot(QCustomPlot::rpImmediate);
+//        demod_Scatter->graph(0)->setData(X,Y);
+//        demod_Scatter->replot(QCustomPlot::rpImmediate);
 
 
 
@@ -291,7 +297,8 @@ bool Mode_FF::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
     pw_ui=ui;
     m_pConfig = pConfig;
     FF_ALL_SETTING stSettingFF;
-    stSettingFF.stFFT.iSizeFFT = 1*4096;
+    stSettingFF.stFFT.iSizeFFT = 4096;
+    stSettingFF.stFFT.FFT_order=log2(stSettingFF.stFFT.iSizeFFT);
     stSettingFF.stSpectrum.dStartFrequency = 0;
     stSettingFF.stSpectrum.dStopFrequency = m_pConfig->m_stInputFile.dSamplingFrequency / 2.0;
     stSettingFF.stSpectrum.dMaxLevel = 0;
@@ -308,9 +315,9 @@ bool Mode_FF::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
 }
 void Mode_FF::PlaySpectrum()
 {
-        if(m_pConfig->ReadFromInputFile(FileReadBuff, m_stSettingFF.stFFT.iSizeFFT*2))
+        if(m_pConfig->ReadFromInputFile(m_pdSignal, m_stSettingFF.stFFT.iSizeFFT*2))
         {
-            m_pConfig->CalcFFT(FileReadBuff,m_pdOutFFT);
+            m_calcFFT.CalcFFT(m_pdSignal,m_pdOutFFT);
             CalculateSpectrum(m_pdOutFFT);
             DrawSpectrum(m_pdSpectrum_X,m_pdSpectrum_Y);
         }
@@ -349,8 +356,8 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
         NF=new double[iSizeFFT/2];
         ippsZero_64f(&Sum_Amp_Sig[0],iSizeFFT);
 
-        int Order_FFT=log10(iSizeFFT)/log10(2);
-         m_pConfig->CreateFFT(Order_FFT,m_stSettingFF.stFFT.iSizeFFT);
+         int Order_FFT=log2(m_stSettingFF.stFFT.iSizeFFT);
+         m_calcFFT_FCEst.SetParameters(m_stSettingFF.stFFT);
 
         for (int k = 0; k < 10; k++)
         {
@@ -359,7 +366,7 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
             {
                 FFT_in[i]=(double)(ReadBuff[(k*iSizeFFT)+i] * pow(2.0,Order_FFT));
             }
-            m_pConfig->CalcFFT(FFT_in,FFT_out);
+            m_calcFFT_FCEst.CalcFFT(FFT_in,FFT_out);
 
 
 //            ippsMagnitude_64f(&FFT_out[0],Amp_Sig,iSizeFFT);
@@ -479,5 +486,6 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
         SNR_New=10*log10(Psig/Pnoise);
         stParamEstimate.dSNR=SNR_New;
         FC_Out = stParamEstimate.dFC;
+
 }
 

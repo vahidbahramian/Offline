@@ -44,7 +44,6 @@ SOURCES += main.cpp\
     mode_ff.cpp \
     mapping.cpp \
     mode_sa.cpp \
-    ModeControl.cpp \
     processor.cpp
 
 HEADERS  += mainwindow.h \
@@ -57,8 +56,7 @@ HEADERS  += mainwindow.h \
     mapping.h \
     mode_sa.h \
     mode_ff.h \
-    processor.h \
-    ModeControl.h
+    processor.h
 
 FORMS    += mainwindow.ui \
     mapping.ui

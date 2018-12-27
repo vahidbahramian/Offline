@@ -14,7 +14,15 @@
    <string>MainWindow</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">*{font-size: 10pt ;}</string>
+   <string notr="true">*{font-size: 10pt ;
+QLineEdit *nameEdit = new QLineEdit(this);
+nameEdit-&gt;setProperty(&quot;mandatoryField&quot;, true);
+
+QLineEdit *emailEdit = new QLineEdit(this);
+emailEdit-&gt;setProperty(&quot;mandatoryField&quot;, true);
+
+QSpinBox *ageSpinBox = new QSpinBox(this);
+ageSpinBox-&gt;setProperty(&quot;mandatoryField&quot;, true);}</string>
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QHBoxLayout" name="horizontalLayout_6">
@@ -60,7 +68,7 @@
             </property>
             <layout class="QFormLayout" name="formLayout">
              <item row="0" column="0">
-              <widget class="QPushButton" name="btn_open">
+              <widget class="QPushButton" name="Btn_SA_FileLoad">
                <property name="minimumSize">
                 <size>
                  <width>50</width>
@@ -99,7 +107,7 @@
             </property>
             <layout class="QHBoxLayout" name="horizontalLayout">
              <item>
-              <widget class="QPushButton" name="btn_pay">
+              <widget class="QPushButton" name="Btn_SA_PlaySPectrum">
                <property name="toolTip">
                 <string>Play</string>
                </property>
@@ -127,7 +135,7 @@
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btn_stop">
+              <widget class="QPushButton" name="btn_SA_stopSpectrum">
                <property name="toolTip">
                 <string>Stop</string>
                </property>
@@ -487,7 +495,7 @@ padding-left:5px;</string>
               </widget>
              </item>
              <item>
-              <widget class="QPushButton" name="btn_stop_sm">
+              <widget class="QPushButton" name="Btn_SM_Stop">
                <property name="toolTip">
                 <string>Stop</string>
                </property>
@@ -1698,7 +1706,7 @@ padding-top:5px;</string>
             </property>
             <layout class="QGridLayout" name="gridLayout_9">
              <item row="0" column="0">
-              <widget class="QPushButton" name="btn_open_8">
+              <widget class="QPushButton" name="Btn_DSSS_LoadFile">
                <property name="minimumSize">
                 <size>
                  <width>50</width>

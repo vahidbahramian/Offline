@@ -51,11 +51,6 @@ bool Configuration::OpenInputFile(QString strAddrFile)
     int m_ulSizeInput = m_fileInput.size();
     m_bLoadedFileInput = true;
     m_strAddrFileInput = strAddrFile;
-//    int Lenght=m_strAddrFileInput.size();
-//    QString Str=m_strAddrFileInput;
-//    unsigned found = Str.find_last_of("\\");
-//    m_strAddrFileInput=m_strAddrFileInput.Right(Lenght-found);
-
     m_ulSizeInputFile = m_fileInput.size();
     m_ulPosInputFile = m_fileInput.pos();
 
@@ -123,6 +118,151 @@ double Configuration::GetOffsetSpectrum(void)
 {
     return -30.0;
 }
+bool Configuration::WriteToSaveFileIQ(double *pdDataI, double *pdDataQ, int iSize)
+{
+//    if(!m_bLoadedFileSave)
+//        return false;
+
+//    int iMinValueA2D = m_stInputFile.iMinValueA2D;
+//    int iMaxValueA2D = m_stInputFile.iMaxValueA2D;
+
+//    qint16 *piData16 = new qint16 [iSize*2];
+
+//    if(m_stInputFile.enByteNum == IFB_2B)
+//    {
+//        qint16 *pnData = new qint16 [iSize*4];
+
+//        for(int i=0; i<iSize; i++)
+//        {
+//            piData16[2*i+0]=pdDataI[i];
+//            piData16[2*i+1]=pdDataQ[i];
+//        }
+
+//            if(!m_stInputFile.bFirstLSB)
+//            {
+//                memcpy(pnData, piData16, iSize*4);
+//                q16 nData;
+//                for(int i=0; i<iSize*2; i++)
+//                {
+//                    nData = pnData[2*i+0];
+//                    pnData[2*i+0] = pnData[2*i+1];
+//                    pnData[2*i+1] = nData;
+//                }
+//                memcpy(piData16, pnData, iSize*2);
+//            }
+//        m_fileSave.write(piData16, iSize*4);
+
+
+//            SAFERELEASE_ARRAY(piData16);
+//            SAFERELEASE_ARRAY(pnData);
+
+//    }
+
+
+    return true;
+}
+bool Configuration::WriteToSaveFile(double *pdData, int iSize)
+{
+//    if(!m_bLoadedFileSave)
+//        return false;
+
+//    int iMinValueA2D = m_stInputFile.iMinValueA2D;
+//    int iMaxValueA2D = m_stInputFile.iMaxValueA2D;
+
+
+//    if(m_stInputFile.enByteNum == IFB_1B)
+//    {
+//        /*			BYTE nData;
+
+//        fscanf_s(pFile, "%c", &nData);
+
+//        fData = nData;
+//        if(m_stInputFile.bSignedValue)
+//        fData = (signed)nData;
+//        */
+//    }
+//    else if(m_stInputFile.enByteNum == IFB_2B)
+//    {
+//        if(iSize == 1)
+//        {
+//            char pnData[2];
+//            qint16 iData16;
+
+//            for(int i=0; i<iSize; i++)
+//            {
+//                iData16 = pdData[i];//(pdData[i] - iMinValueA2D) * (pow(2.0,16) - 1) / (iMaxValueA2D - iMinValueA2D);
+
+//                memcpy(pnData, &iData16, 2);
+
+//                if(m_stInputFile.bFirstLSB)
+//                {
+//                    m_fileSave.write(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
+//                    m_fileSave.write(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
+//                }
+//                else
+//                {
+//                    m_fileSave.write(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
+//                    m_fileSave.write(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
+//                }
+//            }
+//        }
+//        else
+//        {
+//            qint16 *piData16 = new qint16 [iSize];
+//            char *pnData = new char [iSize*2];
+
+//            if(m_stInputFile.bSignedValue)
+//            {
+//                for(int i=0; i<iSize; i++)
+//                    piData16[i] = pdData[i];
+//            }
+//            else
+//            {
+//                for(int i=0; i<iSize; i++)
+//                    piData16[i] = pdData[i];
+//            }
+
+
+//            if(!m_stInputFile.bFirstLSB)
+//            {
+//                memcpy(pnData, piData16, iSize*2);
+//                char nData;
+//                for(int i=0; i<iSize; i++)
+//                {
+//                    nData = pnData[2*i+0];
+//                    pnData[2*i+0] = pnData[2*i+1];
+//                    pnData[2*i+1] = nData;
+//                }
+//                memcpy(piData16, pnData, iSize*1);
+//            }
+//            m_fileSave.write(piData16, iSize*2);
+
+
+//            delete piData16;
+//            delete pnData;
+//        }
+//    }
+//    else if(m_stInputFile.enByteNum == IFB_4B)
+//    {
+//        /*			BYTE pnData[4];
+//        INT32 iData32;
+
+//        fscanf_s(pFile, "%c", &pnData[0]);
+//        fscanf_s(pFile, "%c", &pnData[1]);
+//        fscanf_s(pFile, "%c", &pnData[2]);
+//        fscanf_s(pFile, "%c", &pnData[3]);
+
+//        memcpy(&iData32, pnData, 4);
+
+//        fData = iData32;
+//        if(!m_stInputFile.bSignedValue)
+//        fData = (unsigned)iData32;
+//        */
+//    }
+
+    return true;
+}
+
 bool Configuration::ReadFromInputFile(QVector<double> &pdDataInput, int iSize)
 {
     if(m_ulPosInputFile >= m_ulSizeInputFile)
@@ -239,49 +379,254 @@ bool Configuration::ReadFromInputFile(QVector<double> &pdDataInput, int iSize)
 
     return true;
 }
-void Configuration::CreateFFT(int inum,int iSizefft)
+CCalculateFFT::CCalculateFFT(void)
 {
+    m_pdWindow = NULL;
+    m_pdInputBlock = NULL;
 
-    iSizeFFT= iSizefft;
+    m_stSettingFFT.iSizeFFT = 0;
+    m_stSettingFFT.enWindowType = FWT_HANNING;
+//    SetParameters(m_stSettingFFT);
+}
+CCalculateFFT::~CCalculateFFT(void)
+{
+//    CloseParamFFT();
+    if(m_pdWindow)
+        delete [] m_pdWindow;
+    if(m_pdInputBlock)
+        delete [] m_pdInputBlock;
+}
+bool CCalculateFFT::SetParameters(FFT_SETTING stSettingFFT)
+{
+    if(	(m_stSettingFFT.iSizeFFT == stSettingFFT.iSizeFFT) &&
+        (m_stSettingFFT.FFT_order == stSettingFFT.FFT_order) &&
+        (m_stSettingFFT.enWindowType == stSettingFFT.enWindowType))
+        return false;
 
-    FFT_in_out=ippsMalloc_64fc(iSizeFFT);
+//    CloseParamFFT();
+    if(m_pdWindow)
+    {
+        delete [] m_pdWindow;
+        m_pdWindow = NULL;
+    }
+    if(m_pdInputBlock)
+    {
+        delete [] m_pdInputBlock;
+        m_pdInputBlock = NULL;
+    }
+
+
+    m_stSettingFFT = stSettingFFT;
+    m_pdWindow = new double [m_stSettingFFT.iSizeFFT];
+    m_pdInputBlock = new double [m_stSettingFFT.iSizeFFT];
+
+    for(int i=0; i<m_stSettingFFT.iSizeFFT; i++)
+        m_pdWindow[i] = 1;
+
+    switch (m_stSettingFFT.enWindowType)
+    {
+    case FWT_BOXCAR:
+        boxcar(m_stSettingFFT.iSizeFFT, m_pdWindow);
+        break;
+    case FWT_TRIANG:
+        triang(m_stSettingFFT.iSizeFFT, m_pdWindow);
+        break;
+    case FWT_HAMMING:
+        hamming(m_stSettingFFT.iSizeFFT, m_pdWindow);
+        break;
+    case FWT_HANNING:
+        hanning(m_stSettingFFT.iSizeFFT, m_pdWindow);
+        break;
+    case FWT_BLACKMAN:
+        blackman(m_stSettingFFT.iSizeFFT, m_pdWindow);
+        break;
+    case FWT_FLATTOP:
+        flattop(m_stSettingFFT.iSizeFFT, m_pdWindow);
+        break;
+    case FWT_KAISER:
+        flattop(m_stSettingFFT.iSizeFFT, m_pdWindow);
+        break;
+    }
+
+    InitParamFFT();
+
+    return true;
+}
+bool CCalculateFFT::CalcFFT(QVector<double> In,QVector<double> &Out)
+{
+    Ipp64f *img;
+    img=ippsMalloc_64f(m_stSettingFFT.iSizeFFT);
+    ippsZero_64f(img, m_stSettingFFT.iSizeFFT);
+    ippsCopy_64f(&In[0], src, m_stSettingFFT.iSizeFFT);
+    ippsRealToCplx_64f((Ipp64f*)src,(Ipp64f*)img,FFT_in_out,m_stSettingFFT.iSizeFFT);
+    ippsFFTFwd_CToC_64fc_I(FFT_in_out,(IppsFFTSpec_C_64fc*) pSpec,workBuffer);
+    ippsCplxToReal_64fc(FFT_in_out,dst,img,m_stSettingFFT.iSizeFFT);
+    ippsCopy_64f(dst, &Out[0], m_stSettingFFT.iSizeFFT);
+    ippsFree(img);
+
+}
+
+
+void CCalculateFFT::InitParamFFT()
+{
+    FFT_in_out=ippsMalloc_64fc(m_stSettingFFT.iSizeFFT);
     eps=2.220446049250313e-16;
-    ippsFFTGetSize_C_64fc(inum,IPP_FFT_DIV_FWD_BY_N, ippAlgHintNone,&pSpecSize,&pSpecBufferSize,&pBufferSize);
+    ippsFFTGetSize_C_64fc(m_stSettingFFT.FFT_order,IPP_FFT_DIV_FWD_BY_N, ippAlgHintNone,&pSpecSize,&pSpecBufferSize,&pBufferSize);
     pSpec = ippsMalloc_8u(pSpecSize);
     workBuffer=ippsMalloc_8u(pBufferSize);
     ppFFTSpec=(IppsFFTSpec_C_64fc**)ippsMalloc_8u(pSpecSize);
     pSpecBuffer=ippsMalloc_8u(pSpecSize);
-    ippsFFTInit_C_64fc(ppFFTSpec, inum,IPP_FFT_DIV_FWD_BY_N, ippAlgHintNone,pSpec,pSpecBuffer);
+    ippsFFTInit_C_64fc(ppFFTSpec, m_stSettingFFT.FFT_order,IPP_FFT_DIV_FWD_BY_N, ippAlgHintNone,pSpec,pSpecBuffer);
 
     //-----------
 
 
-    src   = ippsMalloc_64f(iSizeFFT);
-    dst   = ippsMalloc_64f(iSizeFFT);
+    src   = ippsMalloc_64f(m_stSettingFFT.iSizeFFT);
+    dst   = ippsMalloc_64f(m_stSettingFFT.iSizeFFT);
     bFFTCreated=true;
-}
-void Configuration::DestroyFFT()
-{
-    ippsFree(pSpec);
-    ippsFree(workBuffer);
-    ippsFree(ppFFTSpec);
-    ippsFree(pSpecBuffer);
-
-    delete src;
-    delete dst;
-    bFFTCreated=false;
 
 }
-void Configuration::CalcFFT(QVector<double> In,QVector<double> &Out)
+void CCalculateFFT::CloseParamFFT(void)
 {
-    Ipp64f *img;
-    img=ippsMalloc_64f(iSizeFFT);
-    ippsZero_64f(img, iSizeFFT);
-    ippsCopy_64f(&In[0], src, iSizeFFT);
-    ippsRealToCplx_64f((Ipp64f*)src,(Ipp64f*)img,FFT_in_out,iSizeFFT);
-    ippsFFTFwd_CToC_64fc_I(FFT_in_out,(IppsFFTSpec_C_64fc*) pSpec,workBuffer);
-    ippsCplxToReal_64fc(FFT_in_out,dst,img,iSizeFFT);
-    ippsCopy_64f(dst, &Out[0], iSizeFFT);
-    ippsFree(img);
 
+    if(src)
+         delete src;
+    if(dst)
+         delete dst;
+
+    if(pSpec)
+          delete pSpec;
+
+    if(workBuffer)
+    {
+        ippsFree(workBuffer);
+    }
+    if(ppFFTSpec)
+    {
+         ippsFree(ppFFTSpec);
+    }
+    if(pSpecBuffer)
+    {
+        ippsFree(pSpecBuffer);;
+    }
+    if(m_pdWindow)
+    {
+        delete [] m_pdWindow;
+        m_pdWindow = NULL;
+    }
+    if(m_pdInputBlock)
+    {
+        delete [] m_pdInputBlock;
+        m_pdInputBlock = NULL;
+    }
+     bFFTCreated=false;
+
+}
+/*
+* Boxcar
+*
+* n window length
+* w buffer for the window parameters
+*/
+void CCalculateFFT::boxcar(int n, double* w)
+{
+    int i;
+    /* Calculate window coefficients */
+    for (i=0 ; i<n ; i++)
+        w[i] = 1.0;
+}
+/*
+* Triang a.k.a Bartlett
+*
+*               |    (N-1)|
+*           2 * |k - -----|
+*               |      2  |
+* w = 1.0 - ---------------
+*                    N+1
+* n window length
+* w buffer for the window parameters
+*/
+void CCalculateFFT::triang(int n, double* w)
+{
+    double k1  = (double)(n & 1);
+    double k2  = 1/((double)n + k1);
+    int      end = (n + 1) >> 1;
+    int	   i;
+
+    /* Calculate window coefficients */
+    for (i=0 ; i<end ; i++)
+        w[i] = w[n-i-1] = (2.0*((double)(i+1))-(1.0-k1))*k2;
+}
+/*
+* Hanning
+*                   2*pi*k
+* w = 0.5 - 0.5*cos(------), where 0 < k <= N
+*                    N+1
+* n window length
+* w buffer for the window parameters
+*/
+void CCalculateFFT::hanning(int n, double* w)
+{
+    int	   i;
+    double k = 2*PI/((double)(n+1)); /* 2*pi/(N+1) */
+
+    /* Calculate window coefficients */
+    for (i=0; i<n; i++)
+        *w++ = 0.5*(1.0 - cos(k*(double)(i+1)));
+}
+/*
+* Hamming
+*                        2*pi*k
+* w(k) = 0.54 - 0.46*cos(------), where 0 <= k < N
+*                         N-1
+*
+* n window length
+* w buffer for the window parameters
+*/
+void CCalculateFFT::hamming(int n,double* w)
+{
+    int      i;
+    double k = 2*PI/((double)(n-1)); /* 2*pi/(N-1) */
+
+    /* Calculate window coefficients */
+    for (i=0; i<n; i++)
+        *w++ = 0.54 - 0.46*cos(k*(double)i);
+}
+/*
+* Blackman
+*                       2*pi*k             4*pi*k
+* w(k) = 0.42 - 0.5*cos(------) + 0.08*cos(------), where 0 <= k < N
+*                        N-1                 N-1
+*
+* n window length
+* w buffer for the window parameters
+*/
+void CCalculateFFT::blackman(int n,double* w)
+{
+    int      i;
+    double k1 = 2*PI/((double)(n-1)); /* 2*pi/(N-1) */
+    double k2 = 2*k1; /* 4*pi/(N-1) */
+
+    /* Calculate window coefficients */
+    for (i=0; i<n; i++)
+        *w++ = 0.42 - 0.50*cos(k1*(double)i) + 0.08*cos(k2*(double)i);
+}
+/*
+* Flattop
+*                                        2*pi*k                     4*pi*k
+* w(k) = 0.2810638602 - 0.5208971735*cos(------) + 0.1980389663*cos(------), where 0 <= k < N
+*                                          N-1                        N-1
+*
+* n window length
+* w buffer for the window parameters
+*/
+void CCalculateFFT::flattop(int n,double* w)
+{
+    int      i;
+    double k1 = 2*PI/((double)(n-1)); /* 2*pi/(N-1) */
+    double k2 = 2*k1;                   /* 4*pi/(N-1) */
+
+    /* Calculate window coefficients */
+    for (i=0; i<n; i++)
+        *w++ = 0.2810638602 - 0.5208971735*cos(k1*(double)i) + 0.1980389663*cos(k2*(double)i);
 }
