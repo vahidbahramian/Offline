@@ -2,7 +2,11 @@
 
 Mode_FF::Mode_FF()
 {
-
+    m_pdSignal = NULL;
+    m_pdOutFFT = NULL;
+    m_pdMaxHoldSpectrum = NULL;
+    m_pdMaxHoldPhaseErr = NULL;
+    ScatterBuff=NULL;
 }
 void Mode_FF::InitGraph(Ui::MainWindow *ui)
 {
@@ -98,28 +102,55 @@ void Mode_FF::InitGraph(Ui::MainWindow *ui)
     demod_Spectrum->xAxis->setRange(0, 83.33*1e6);
     demod_Spectrum->yAxis->setRange(-130,130);
 
-    demod_Scatter= new CustomPlotZoom;
-//    demod_Scatter->legend->setVisible(true);
-    demod_Scatter->legend->setFont(QFont("Helvetica", 9));
-    demod_Scatter->legend->setRowSpacing(-3);
-    demod_Scatter->addGraph();
-    demod_Scatter->graph()->rescaleAxes(true);
-    demod_Scatter->graph()->setPen(QPen(Qt::white, 1));
-    //demod_Scatter->graph()->setName(QCPScatterStyle::staticMetaObject.enumerator(QCPScatterStyle::staticMetaObject.indexOfEnumerator("ScatterShape")).valueToKey(shapes.at(i)));
-    demod_Scatter->graph()->setLineStyle(QCPGraph::lsLine);
-    demod_Scatter->rescaleAxes();
-    demod_Scatter->xAxis->setTicks(false);
-    demod_Scatter->yAxis->setTicks(false);
-    demod_Scatter->xAxis->setTickLabels(false);
-    demod_Scatter->yAxis->setTickLabels(false);
-    // make top right axes clones of bottom left axes:
-    demod_Scatter->axisRect()->setupFullAxesBox();
-    demod_Scatter->xAxis->setRange(0, 83.33*1e6);
-    demod_Scatter->yAxis->setRange(-130,130);
-    ui->demod_Scatter->addWidget(demod_Scatter);
-    ui->demod_Spectrum->addWidget(demod_Spectrum);
-    ui->demod_PhaseErr->addWidget(demod_PhaseErr);
-    ui->demod_TimeDomain->addWidget(demod_TimeDomain);
+//    demod_Scatter= new CustomPlotZoom;
+////    demod_Scatter->legend->setVisible(true);
+//    demod_Scatter->legend->setFont(QFont("Helvetica", 9));
+//    demod_Scatter->legend->setRowSpacing(-3);
+//    demod_Scatter->addGraph();
+//    demod_Scatter->graph()->rescaleAxes(true);
+//    demod_Scatter->graph()->setPen(QPen(Qt::white, 1));
+//    //demod_Scatter->graph()->setName(QCPScatterStyle::staticMetaObject.enumerator(QCPScatterStyle::staticMetaObject.indexOfEnumerator("ScatterShape")).valueToKey(shapes.at(i)));
+//    demod_Scatter->graph()->setLineStyle(QCPGraph::lsLine);
+//    demod_Scatter->rescaleAxes();
+//    demod_Scatter->xAxis->setTicks(false);
+//    demod_Scatter->yAxis->setTicks(false);
+//    demod_Scatter->xAxis->setTickLabels(false);
+//    demod_Scatter->yAxis->setTickLabels(false);
+//    // make top right axes clones of bottom left axes:
+//    demod_Scatter->axisRect()->setupFullAxesBox();
+//    demod_Scatter->xAxis->setRange(0, 83.33*1e6);
+//    demod_Scatter->yAxis->setRange(-130,130);
+
+    Constellation_1 = new CustomPlotZoom();
+    Constellation_1->addGraph();
+    Constellation_1->setZoomMode(true);
+    Constellation_1->setSignalMode(false);
+    QLinearGradient axisRectGradient;
+    axisRectGradient.setStart(0, 0);
+    axisRectGradient.setFinalStop(0, 350);
+    axisRectGradient.setColorAt(1, QColor(49, 54, 59));
+    axisRectGradient.setColorAt(1, QColor(49, 54, 59));
+    Constellation_1->axisRect()->setBackground(axisRectGradient);
+    QPixmap qp;
+    qp.fill(QColor(0, 0, 0));
+    Constellation_1->setBackground(qp);
+    Constellation_1->xAxis->setTickLabels(false);
+    Constellation_1->yAxis->setTickLabels(false);
+
+    Constellation_1->xAxis->setRange(-2000,2000);
+    Constellation_1->yAxis->setRange(-2000,2000);
+    ConstaltionPoint1 = new  QCPCurve(Constellation_1->xAxis,Constellation_1->yAxis);
+    Constellation_1->addPlottable(ConstaltionPoint1);
+
+    myscatter.setShape(QCPScatterStyle::ssDisc);
+    myscatter.setSize(1.0);
+    data_CH1 = new  QCPCurveDataMap;
+
+
+        ui->demod_Scatter->addWidget(Constellation_1);
+        ui->demod_Spectrum->addWidget(demod_Spectrum);
+        ui->demod_PhaseErr->addWidget(demod_PhaseErr);
+        ui->demod_TimeDomain->addWidget(demod_TimeDomain);
 
     for (int var = 0; var < nOSD_DEMOD_TYPE ;var++) {
         ui->combo_FF_Demodename->addItem(g_strOSD_DEMOD_TYPE[var]);
@@ -186,6 +217,20 @@ void Mode_FF::Close(void)
     CloseMode();
 
 }
+bool Mode_FF::ReSetParameters(void)
+{
+    FF_ALL_SETTING stSettingFF;
+    memcpy(&stSettingFF, &m_stSettingFF, sizeof(stSettingFF));
+    if (FS_Last!= m_pConfig->m_stInputFile.dSamplingFrequency)
+    {
+        stSettingFF.stSpectrum.dStartFrequency=0;
+        stSettingFF.stSpectrum.dStopFrequency=m_pConfig->m_stInputFile.dSamplingFrequency/2.0;
+    }
+    FS_Last=m_pConfig->m_stInputFile.dSamplingFrequency;
+    m_pConfig->CheckSpectrumLimit(stSettingFF.stSpectrum.dStartFrequency,stSettingFF.stSpectrum.dStopFrequency);
+
+    return SetParameters(stSettingFF);
+}
 bool Mode_FF::SetParameters(FF_ALL_SETTING stSettingFF)
 {
     m_bInSettingMode = true;
@@ -197,14 +242,14 @@ bool Mode_FF::SetParameters(FF_ALL_SETTING stSettingFF)
         m_pdSpectrum_X.clear();
     if(!m_pdSpectrum_Y.isEmpty())
         m_pdSpectrum_Y.clear();
-    if(!m_pdMaxHoldSpectrum.isEmpty())
-        m_pdMaxHoldSpectrum.clear();
-    if(!m_pdMaxHoldPhaseErr.isEmpty())
-        m_pdMaxHoldPhaseErr.clear();
-    if(!m_pdSignal.isEmpty())
-        m_pdSignal.clear();
-    if(!m_pdOutFFT.isEmpty())
-        m_pdOutFFT.clear();
+    if(m_pdMaxHoldSpectrum)
+        delete [] m_pdMaxHoldSpectrum;
+    if(m_pdMaxHoldPhaseErr)
+        delete [] m_pdMaxHoldPhaseErr;
+    if(m_pdSignal)
+        delete [] m_pdSignal;
+    if(m_pdOutFFT)
+        delete [] m_pdOutFFT;
 
 
     double dSamplingFrequency = m_pConfig->m_stInputFile.dSamplingFrequency;
@@ -220,9 +265,8 @@ bool Mode_FF::SetParameters(FF_ALL_SETTING stSettingFF)
 
 
     //--- FFT
-
-    m_pdSignal.resize(m_stSettingFF.stFFT.iSizeFFT);
-    m_pdOutFFT.resize(m_stSettingFF.stFFT.iSizeFFT);
+    m_pdSignal=new double[m_stSettingFF.stFFT.iSizeFFT];
+    m_pdOutFFT=new double[m_stSettingFF.stFFT.iSizeFFT];
     if(!m_calcFFT.IsFFTCreated())
         m_calcFFT.SetParameters(m_stSettingFF.stFFT);
 
@@ -237,11 +281,11 @@ bool Mode_FF::SetParameters(FF_ALL_SETTING stSettingFF)
 
 
     //--- Max Hold Buffer
-    m_pdMaxHoldSpectrum.resize(m_iSizeSpectrum);
+    m_pdMaxHoldSpectrum=new double[m_iSizeSpectrum];
     for(int i=0; i<m_iSizeSpectrum; i++)
         m_pdMaxHoldSpectrum[i] = -1e6;
 
-    m_pdMaxHoldPhaseErr.resize(300);
+    m_pdMaxHoldPhaseErr=new double[300];
     for(int i=0; i<300; i++)
         m_pdMaxHoldPhaseErr[i] = -15000;
 
@@ -254,20 +298,57 @@ void Mode_FF::DrawSpectrum(QVector<double> X,QVector<double> Y)
         demod_Spectrum->graph(0)->setData(X,Y);
         demod_Spectrum->replot(QCustomPlot::rpImmediate);
 
-        demod_PhaseErr->graph(0)->setData(X,Y);
-        demod_PhaseErr->replot(QCustomPlot::rpImmediate);
+        QVector<double> x;
+        x.resize(10000);
+        QVector<double> y;
+        y.resize(10000);
+        for(int i=0;i<10000;i+=4)
+        {
+            QDateTime dt=QDateTime::currentDateTime();
+            int qr=dt.time().msec();
+            y[i]=qr;
+            y[i+1]=-qr;
+            y[i+2]=qr;
+            y[i+3]=-qr;
 
-
-//        demod_TimeDomain->graph(0)->setData(X,Y);
-//        demod_TimeDomain->replot(QCustomPlot::rpImmediate);
-
-//        demod_Scatter->graph(0)->setData(X,Y);
-//        demod_Scatter->replot(QCustomPlot::rpImmediate);
-
-
+            x[i]=qr;
+            x[i+1]=qr;
+            x[i+2]=-qr;
+            x[i+3]=-qr;
+            qDebug()<<qr;
+        }
+        fillcontlation(x,y);
+        x.clear();
+        y.clear();
 
 }
-void Mode_FF::CalculateSpectrum(QVector<double> m_pdOutFFT)
+void Mode_FF::fillcontlation(QVector<double> x,QVector<double> y)
+{
+
+
+    data_CH1->clear();
+    QCPCurveData d;
+    ConstaltionPoint1->clearData();
+
+    ConstaltionPoint1->setLineStyle(QCPCurve::lsNone);
+    ConstaltionPoint1->setPen(QPen(Qt::green));
+    ConstaltionPoint1->setScatterStyle(myscatter);
+    for(int i=0;i< x.count();i++)
+    {
+        d.t=i+1;
+        d.value = y[i];
+        d.key   = x[i];
+        data_CH1->insertMulti(d.t,d);
+    }
+
+    ConstaltionPoint1->setData(data_CH1,true);
+    Constellation_1->graph(0)->setPen(QPen(Qt::green));
+    Constellation_1->setSignalMode(false);
+    Constellation_1->replot();
+
+}
+
+void Mode_FF::CalculateSpectrum(double *m_pdOutFFT)
 {
     for (int i=0; i< m_iSizeSpectrum; i++)
     {
@@ -313,9 +394,56 @@ bool Mode_FF::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
     SetParameters(stSettingFF);
     return true;
 }
+bool Mode_FF::ReadDataFromFile(void)
+{
+    //	CreateVirtualSignal();
+    bool bReadResult=0;
+    if(m_pConfig->m_bLoadedFileInput)
+    {
+        int iSizeFFT = m_stSettingFF.stFFT.iSizeFFT;
+        double dOverlapRatio = m_stSettingFF.stSpectrum.dOverlapRatio;
+
+
+        int iStartFile = 0;
+        if((dOverlapRatio > 0) && (dOverlapRatio < 1))
+        {
+            iStartFile = int(dOverlapRatio * iSizeFFT);
+
+            for(int i=0; i<iStartFile; i++)
+                m_pdSignal[i] = m_pdSignal[iSizeFFT - iStartFile - 1 + i];
+        }
+
+
+        //----------------------------------------------------------
+        //--- Read Data from File ----------------------------------
+        //----------------------------------------------------------
+        if(m_bKillThreadSpectrum || m_pConfig->IsEndOfFile())
+            return false;
+
+            if ( m_pConfig->wavefile)
+                bReadResult=false;
+            else
+            {
+                m_pConfig->ReadFromInputFile(&m_pdSignal[iStartFile], iSizeFFT - iStartFile);
+                bReadResult=true;
+            }
+
+
+
+        //--- Space
+        if(dOverlapRatio < 0)
+        {
+            int iSizeSpace = abs(dOverlapRatio) * iSizeFFT;
+            m_pConfig->GotoNextSample(iSizeSpace);
+        }
+    }
+
+    return bReadResult;
+}
+
 void Mode_FF::PlaySpectrum()
 {
-        if(m_pConfig->ReadFromInputFile(m_pdSignal, m_stSettingFF.stFFT.iSizeFFT*2))
+        if(ReadDataFromFile())
         {
             m_calcFFT.CalcFFT(m_pdSignal,m_pdOutFFT);
             CalculateSpectrum(m_pdOutFFT);
@@ -334,8 +462,8 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
         return ;
 
     m_pConfig->GotoFileStartPos();
-    QVector<double> ReadBuff;
-    ReadBuff.resize(10*m_stSettingFF.stFFT.iSizeFFT*2);
+    double *ReadBuff;
+    ReadBuff=new double(10*m_stSettingFF.stFFT.iSizeFFT*2);
 
     double Fs = m_pConfig->m_stInputFile.dSamplingFrequency * g_iINPUT_FREQ_UNIT[(int)m_pConfig->m_stInputFile.enFreqUnit];
     double Fc = Fc * g_iINPUT_FREQ_UNIT[(int)m_pConfig->m_stInputFile.enFreqUnit];
@@ -347,10 +475,10 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
             qDebug("Error in File Size");
 
         m_pConfig->ReadFromInputFile(ReadBuff, 10*iSizeFFT);
-        QVector<double> FFT_in(iSizeFFT);
-        QVector<double> FFT_out(iSizeFFT);
-        QVector<double> Amp_Sig(iSizeFFT);
-        QVector<double> Sum_Amp_Sig(iSizeFFT);
+       double *FFT_in=new double[iSizeFFT];
+       double *FFT_out=new double[iSizeFFT];
+       double *Amp_Sig=new double[iSizeFFT];
+       double *Sum_Amp_Sig=new double[iSizeFFT];
         double *NF,*Amp_Sig_fil,*mvaverage;
 
         NF=new double[iSizeFFT/2];
@@ -451,9 +579,6 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
         double Pnoise=Amp_Sig[Start_Index-1]+Amp_Sig[Start_Index-2]+Amp_Sig[Start_Index-3]+Amp_Sig[Start_Index-4]+Amp_Sig[Start_Index-5]+Amp_Sig[Stop_Index+1]+Amp_Sig[Stop_Index+2]+Amp_Sig[Stop_Index+3]+Amp_Sig[Stop_Index+4]+Amp_Sig[Stop_Index+5];
         Pnoise=Pnoise/10;
 
-//        delete [] Amp_Sig;
-//        delete [] Buffer_EST;
-//        delete [] Sum_Amp_Sig;
         double Noise_floor;
         ippsSortAscend_64f_I(NF,iSizeFFT/2);
         ippsMean_64f(NF,iSizeFFT/2,&Noise_floor);
@@ -481,6 +606,12 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
         }
 
         delete [] NF;
+        delete [] ReadBuff;
+
+        delete [] FFT_in;
+        delete [] FFT_out;
+        delete [] Amp_Sig;
+        delete [] Sum_Amp_Sig;
 
 
         SNR_New=10*log10(Psig/Pnoise);
@@ -488,4 +619,3 @@ void  Mode_FF::ParamEstimate(double d_xRuler,double d_yRuler,double &FC_Out)
         FC_Out = stParamEstimate.dFC;
 
 }
-

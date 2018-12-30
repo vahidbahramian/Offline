@@ -9,7 +9,10 @@
 #include "ui_mainwindow.h"
 #include <vector>
 #include "configuration.h"
+//#include "SRC.h"
+//#include "AMREstimation.h"
 
+//using namespace NS_FRAME_BASED;
 struct FF_ALL_SETTING
 {
     FFT_SETTING			stFFT;
@@ -40,10 +43,12 @@ public:
     void StopSpectrum(void);
     bool StartSpectrum(void);
     bool LoadDataFile(QString path);
+    bool ReadDataFromFile(void);
     bool SetParameters(FF_ALL_SETTING stSettingFF);
-    void CalculateSpectrum(QVector<double> m_pdOutFFT);
+    bool ReSetParameters(void);
+    void CalculateSpectrum(double *m_pdOutFFT);
     void DrawSpectrum(QVector<double> X,QVector<double> Y);
-    void ParamEstimate(double d_xRuler, double d_yRuler, double &FC_Out);
+
 
 private:
     bool StartSpectrumThread(void);
@@ -66,13 +71,13 @@ public:
     bool IsStartSelect(void){return m_bStartSelect;}
 public:
     QString name;
-    QVector<double> m_pdOutFFT;
     QVector<double> m_pdSpectrum_X;
     QVector<double> m_pdSpectrum_Y;
-    QVector<double> m_pdMaxHoldSpectrum;
-    QVector<double> m_pdMaxHoldPhaseErr;
-    QVector<double> ScatterBuff;
-    QVector<double> m_pdSignal;
+    double *m_pdOutFFT;
+    double *m_pdMaxHoldSpectrum;
+    double *m_pdMaxHoldPhaseErr;
+    double *ScatterBuff;
+    double *m_pdSignal;
     bool m_bInSettingMode;
 public : //Spectrum
     int		m_iSizeSpectrum;
@@ -82,7 +87,8 @@ public : //Spectrum
     bool	m_bShowMaxHoldSpectrum;
 
 
-private:
+
+public:
     QString		m_strMainAddrRecord;
     QString		m_strNameFileRecord;
     double m_dEstimatedFc_New;
@@ -97,11 +103,33 @@ private:
 
     bool b_Analyzed;
     bool killthread;
-
     ESTIMATE_PARAM m_stEstimateParam;
+    double unit;
+    double FS_Last;
+    double *pAMRinputI;
+    double *pAMRinputQ;
+    double dFsNonLinear;
+
+//    CSRC  *m_pFilterToSRC;
+    QString m_stModulationType;
+    int amr_outt;
+    int FH_ModType;
 
 
+    void ParamEstimate(double d_xRuler, double d_yRuler, double &FC_Out);
+    void Rs1702Param(double d_xRuler,double d_yRuler,double &Rs_Out);
+    double RS_Estimate(Ipp64fc *Sig,double m_Bw_baseband, int InputSize);
+    void SavtToFile_double(double *dbDataInp2,int nLenOut);
 
+    void ChangeRsSignal_FSK(Ipp64fc *pSignal);
+    void hamming(int n,double* w);
+    double New_1702RS(Ipp64fc *Sig, double BW, int InputSize);
+
+    CustomPlotZoom *Constellation_1;
+    QCPCurve *ConstaltionPoint1;
+    QCPCurveDataMap  *data_CH1;
+    QCPScatterStyle myscatter;
+    void fillcontlation(QVector<double> x,QVector<double> y);
 
 };
 

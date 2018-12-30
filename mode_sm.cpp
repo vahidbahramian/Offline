@@ -1,8 +1,24 @@
 #include "mode_sm.h"
 Mode_SM::Mode_SM()
 {
+    m_pdSignal = NULL;
+    m_pdOutFFT = NULL;
+    m_pdOutFFTNxt=NULL;
+    m_pdMaxHoldSpectrum = NULL;
+    m_pdMaxHoldPhaseErr = NULL;
+    ScatterBuff=NULL;
+    tapslen_ippLPF=200; //iAdded
+    rFreq_ippLPF=1; //iAdded
+    WinType_Index=0;
+    m_bRunConvert = false;
+    m_bFirstFrame = true;
+    m_bStartSpectrum = false;
 
 }
+Mode_SM::~Mode_SM()
+{
+}
+
 bool Mode_SM::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
 {
     pw_ui=ui;
@@ -124,7 +140,7 @@ void Mode_SM::InitGraph(Ui::MainWindow *ui)
     signalManipulation_FilterResponse->setXZoomMode(true);
     signalManipulation_FilterResponse->setSignalMode(false);
     signalManipulation_FilterResponse->xAxis->setRange(0, 83.33*1e6);
-    signalManipulation_FilterResponse->yAxis->setRange(-130,130);
+    signalManipulation_FilterResponse->yAxis->setRange(-150,130);
 
     signalManipulation_Spectrum2 = new CustomPlotZoom;
     signalManipulation_Spectrum2->IsPSD=true;
@@ -163,6 +179,49 @@ void Mode_SM::InitGraph(Ui::MainWindow *ui)
     for (int var = 0; var < n_FILTER_TYPE ;var++) {
         ui->combo_sm_FilterResponse->addItem(g_str_MANIPULATE_TYPE[var]);
     }
+}
+bool Mode_SM::ReadDataFromFile(void)
+{
+    //	CreateVirtualSignal();
+
+        bool bReadResult = false;
+        if(m_pConfig->m_bLoadedFileInput)
+        {
+            int iSizeFFT = m_stSettingSM.stFFTPre.iSizeFFT;
+            double dOverlapRatio = m_stSettingSM.stSpectrumPre.dOverlapRatio;
+
+            int iStartFile = 0;
+            if((dOverlapRatio > 0) && (dOverlapRatio < 1))
+            {
+                iStartFile = int(dOverlapRatio * iSizeFFT);
+
+                for(int i=0; i<iStartFile; i++)
+                    m_pdSignal[i] = m_pdSignal[iSizeFFT - iStartFile - 1 + i] ;
+            }
+
+
+            //----------------------------------------------------------
+            //--- Read Data from File ----------------------------------
+            //----------------------------------------------------------
+            if((m_bKillThreadSpectrum && !m_bRunConvert) || m_pConfig->IsEndOfFile())
+                return false;
+
+            if(m_pConfig->m_stInputFile.bInputIQ)
+            {
+//                if ( m_pConfig->wavefile)
+//                    bReadResult=m_pConfig->ReadFromInputFileIQ_wave(m_pdDataI, m_pdDataQ, iSizeFFT);
+//                else
+//                    bReadResult = m_pConfig->ReadFromInputFileIQ(m_pdDataI, m_pdDataQ, iSizeFFT);
+                for(int i=0; i<iSizeFFT; i++)
+                    m_pdSignal[i] = m_pdDataI[i];//sqrt(m_pdDataI[i]*m_pdDataI[i] + m_pdDataQ[i]*m_pdDataQ[i]);
+                memcpy(&m_pdDataIQ->re,m_pdDataI,sizeof (double)*iSizeFFT);
+                memcpy(&m_pdDataIQ->im,m_pdDataQ,sizeof (double)*iSizeFFT);
+            }
+            else if(!m_pConfig->wavefile)
+                    bReadResult = m_pConfig->ReadFromInputFile(m_pdSignal, iSizeFFT);
+        }
+
+        return bReadResult;
 }
 bool Mode_SM::LoadDataFile(QString path)
 {
@@ -210,8 +269,7 @@ void Mode_SM::StopSpectrum(void)
 {
     if(m_bStartSpectrum)
     {
-        if(timer->isActive())
-            timer->stop();
+        timer->stop();
         m_bStartSpectrum = false;
         m_bPauseSpectrum = false;
     }
@@ -256,16 +314,16 @@ bool Mode_SM::SetParameters(SM_ALL_SETTING stSettingSM)
             m_pdSpectrumNxt_X.clear();
         if(!m_pdSpectrumNxt_Y.isEmpty())
             m_pdSpectrumNxt_Y.clear();
-        if(!m_pdMaxHoldSpectrum.isEmpty())
-            m_pdMaxHoldSpectrum.clear();
-        if(!m_pdMaxHoldPhaseErr.isEmpty())
-            m_pdMaxHoldPhaseErr.clear();
-        if(!m_pdSignal.isEmpty())
-            m_pdSignal.clear();
-        if(!m_pdOutFFT.isEmpty())
-            m_pdOutFFT.clear();
-        if(!m_pdOutFFTNxt.isEmpty())
-            m_pdOutFFTNxt.clear();
+        if(m_pdMaxHoldSpectrum)
+            delete [] m_pdMaxHoldSpectrum;
+        if(m_pdMaxHoldPhaseErr)
+            delete [] m_pdMaxHoldPhaseErr;
+        if(m_pdSignal)
+            delete [] m_pdSignal;
+        if(m_pdOutFFT)
+            delete [] m_pdOutFFT;
+        if(m_pdOutFFTNxt)
+            delete [] m_pdOutFFTNxt;
 
         double dSamplingFrequency = m_pConfig->m_stInputFile.dSamplingFrequency;
 
@@ -284,8 +342,8 @@ bool Mode_SM::SetParameters(SM_ALL_SETTING stSettingSM)
 
 
         //--- FFT
-        m_pdSignal.resize(m_stSettingSM.stFFTPre.iSizeFFT);
-        m_pdOutFFT.resize(m_stSettingSM.stFFTPre.iSizeFFT);
+        m_pdSignal=new double[m_stSettingSM.stFFTPre.iSizeFFT];
+        m_pdOutFFT=new double[m_stSettingSM.stFFTPre.iSizeFFT];
         m_pdDataI = new double [m_stSettingSM.stFFTPre.iSizeFFT];
         m_pdDataQ = new double [m_stSettingSM.stFFTPre.iSizeFFT];
         m_pdDataIQ =ippsMalloc_32fc(m_stSettingSM.stFFTPre.iSizeFFT);
@@ -298,7 +356,7 @@ bool Mode_SM::SetParameters(SM_ALL_SETTING stSettingSM)
         m_calcFFT_Filter.SetParameters(stFFTFilter);
 
         //--- Signal Next (Filtered Signal)
-        m_pdSignalNxt .resize(m_stSettingSM.stFFTNxt.iSizeFFT);
+        m_pdSignalNxt =new double[m_stSettingSM.stFFTNxt.iSizeFFT];
         m_pdSignalNxt_Complx-ippsMalloc_64fc(m_stSettingSM.stFFTNxt.iSizeFFT);
         m_pdSignalNxt_I = new double [m_stSettingSM.stFFTNxt.iSizeFFT];
         m_pdSignalNxt_Q = new double [m_stSettingSM.stFFTNxt.iSizeFFT];
@@ -312,7 +370,7 @@ bool Mode_SM::SetParameters(SM_ALL_SETTING stSettingSM)
             m_pdSpectrum_Y[i] = -150;
 
         //--- Max Hold Buffer
-        m_pdMaxHoldSpectrum.resize(m_iSizeSpectrum);
+        m_pdMaxHoldSpectrum=new double[m_iSizeSpectrum];
         for(int i=0; i<m_iSizeSpectrum; i++)
             m_pdMaxHoldSpectrum[i] = -1e6;
 
@@ -426,7 +484,7 @@ bool Mode_SM::SetParameters(SM_ALL_SETTING stSettingSM)
 
 
         //--- FFT
-        m_pdOutFFTNxt.resize(m_stSettingSM.stFFTNxt.iSizeFFT);
+        m_pdOutFFTNxt=new double[m_stSettingSM.stFFTNxt.iSizeFFT];
         m_calcFFTNxt.SetParameters(m_stSettingSM.stFFTNxt);
 
 
@@ -500,7 +558,7 @@ void Mode_SM::DrawSpectrum_FilterResponse(QVector<double> X,QVector<double> Y)
         signalManipulation_FilterResponse->replot(QCustomPlot::rpImmediate);
 
 }
-void Mode_SM::CalculateSpectrum(QVector<double> m_pdOutFFT)
+void Mode_SM::CalculateSpectrum(double *m_pdOutFFT)
 {
     for (int i=0; i< m_iSizeSpectrum; i++)
     {
@@ -602,7 +660,7 @@ else
 
 void Mode_SM::PlaySpectrum()
 {
-        if(m_pConfig->ReadFromInputFile(m_pdSignal, m_stSettingSM.stFFTPre.iSizeFFT*2))
+        if(ReadDataFromFile())
         {
             m_calcFFT.CalcFFT(m_pdSignal,m_pdOutFFT);
             CalculateSpectrum(m_pdOutFFT);
@@ -685,14 +743,18 @@ bool Mode_SM::SetFilterParamFIR(FIR_FILTER stFilterParam)
     //-------------------------------------------------------
 
 
-    status_FIR = ippsFIRSRGetSize (m_stSettingSM.FilteBuff_Size,  ipp64f ,  &specSize_FIR,  &bufSize_FIR );
-    nSize=m_stSettingSM.FilteBuff_Size;
-    dlysrc_FIR   = ippsMalloc_64f(nSize-1);
-    dlydst_FIR   = ippsMalloc_64f(nSize-1);
-    ippsSet_64f(0, dlysrc_FIR, nSize-1);
-    pSpec_FIR = (IppsFIRSpec_64f*)ippsMalloc_8u(specSize_FIR); //specSize
-    buf_FIR   = ippsMalloc_8u(bufSize_FIR); //bufSize
-    ippsFIRSRInit_64f( m_stSettingSM.FilteBuff, nSize, ippAlgDirect, pSpec_FIR );
+//    status_FIR = ippsFIRSRGetSize (m_stSettingSM.stFilterFIR.nNumTaps,  ipp64f ,  &specSize_FIR,  &bufSize_FIR );
+//    nSize=m_stSettingSM.stFilterFIR.nNumTaps;
+//    dlysrc_FIR   = ippsMalloc_64f(nSize-1);
+//    dlydst_FIR   = ippsMalloc_64f(nSize-1);
+//    taps_FIR=new double[nSize];
+//    //ippsSet_64f(0, dlysrc_FIR, nSize-1);
+//    pSpec_FIR = (IppsFIRSpec_64f*)ippsMalloc_8u(specSize_FIR); //specSize
+//    buf_FIR   = ippsMalloc_8u(bufSize_FIR); //bufSize
+//    bufLPF=ippsMalloc_8u(tapslen_ippLPF*sizeof(Ipp64f));
+//    ippsFIRGenLowpass_64f(rFreq_ippLPF, taps_ippLPF, tapslen_ippLPF, WinType_new, ippTrue,bufLPF); // iAdded
+//    status = ippsFIRSRGetSize (tapslen_ippLPF,  ipp64f ,  &specSize,  &bufSize );
+    //ippsFIRSRInit_64f(taps_FIR, m_stSettingSM.stFilterFIR.nNumTaps, ippAlgDirect, pSpec_FIR );
 
 
     return true;
@@ -734,6 +796,7 @@ bool Mode_SM::SetFilterParamIIR(IIR_FILTER stFilterParam)
 
     return true;
 }
+
 void Mode_SM::CreatLPFilter(int SIZEE) // i Added
 {
     double FS=m_pConfig->m_stInputFile.dSamplingFrequency;
@@ -752,8 +815,13 @@ void Mode_SM::CreatLPFilter(int SIZEE) // i Added
     else if(m_stSettingSM.WinType==3) WinType_new=ippWinHann;
     else if(m_stSettingSM.WinType==4) WinType_new=ippWinRect;
 
+    int *pBuffer;
+    pBuffer=new int[tapslen_ippLPF];
     taps_ippLPF = ippsMalloc_64f(tapslen_ippLPF*sizeof(Ipp64f)); // iAdded
-   // ippsFIRGenLowpass_64f(rFreq_ippLPF, taps_ippLPF, tapslen_ippLPF, WinType_new /*ippWinBartlett*/, ippTrue); // iAdded
+    ippsFIRGenGetBufferSize(tapslen_ippLPF,pBuffer);
+    ippsFIRGenLowpass_64f(rFreq_ippLPF, taps_ippLPF, tapslen_ippLPF,
+                          WinType_new, ippTrue
+                          ,(Ipp8u*)pBuffer); // iAdded
 
     status = ippsFIRSRGetSize (tapslen_ippLPF,  ipp64f ,  &specSize,  &bufSize );
 
@@ -765,7 +833,7 @@ void Mode_SM::CreatLPFilter(int SIZEE) // i Added
    // taps_ippLPF  = ippsMalloc_64f(nSize);
     //ippsSet_64f(a, taps_ippLPF, nSize);
     pSpec = (IppsFIRSpec_64f*)ippsMalloc_8u(specSize); //specSize
-    buf   = ippsMalloc_8u(bufSize); //bufSize
+    //buf   = ippsMalloc_8u(bufSize); //bufSize
     ippsFIRSRInit_64f( taps_ippLPF, nSize, ippAlgDirect, pSpec );
 
     //dst   = ippsMalloc_64f(SIZEE/8);
@@ -788,8 +856,11 @@ void Mode_SM::CreatLPFilter_I(int SIZEE) // i Added
     else if(m_stSettingSM.WinType==3) WinType_new=ippWinHann;
     else if(m_stSettingSM.WinType==4) WinType_new=ippWinRect;
 
+    int *pBuffer;
     taps_ippLPF = ippsMalloc_64f(tapslen_ippLPF*sizeof(Ipp64f)); // iAdded
-    //ippsFIRGenLowpass_64f(rFreq_ippLPF, taps_ippLPF, tapslen_ippLPF, WinType_new /*ippWinBartlett*/, ippTrue); // iAdded
+    pBuffer=new int[tapslen_ippLPF];
+    ippsFIRGenGetBufferSize(tapslen_ippLPF,pBuffer);
+    ippsFIRGenLowpass_64f(rFreq_ippLPF, taps_ippLPF, tapslen_ippLPF, WinType_new, ippTrue,(Ipp8u*)pBuffer); // iAdded
 
     statusi = ippsFIRSRGetSize (tapslen_ippLPF,  ipp64f ,  &specSizei,  &bufSizei);
 
@@ -823,9 +894,12 @@ void Mode_SM::CreatLPFilter_Q(int SIZEE) // i Added
     else if(m_stSettingSM.WinType==2) WinType_new=ippWinHamming;
     else if(m_stSettingSM.WinType==3) WinType_new=ippWinHann;
     else if(m_stSettingSM.WinType==4) WinType_new=ippWinRect;
-
+    int *pBuffer;
     taps_ippLPF = ippsMalloc_64f(tapslen_ippLPF*sizeof(Ipp64f)); // iAdded
-   // ippsFIRGenLowpass_64f(rFreq_ippLPF, taps_ippLPF, tapslen_ippLPF, WinType_new /*ippWinBartlett*/, ippTrue); // iAdded
+    pBuffer=new int[tapslen_ippLPF];
+    ippsFIRGenGetBufferSize(tapslen_ippLPF,pBuffer);
+    ippsFIRGenLowpass_64f(rFreq_ippLPF, taps_ippLPF, tapslen_ippLPF, WinType_new , ippTrue,(Ipp8u*)pBuffer); // iAdded
+
 
     statusq = ippsFIRSRGetSize (tapslen_ippLPF,  ipp64f ,  &specSizeq,  &bufSizeq );
 
@@ -848,10 +922,12 @@ void Mode_SM::CreatLoadFilter(int SIZEE) // i Added
 
 
     status_LF = ippsFIRSRGetSize (m_stSettingSM.FilteBuff_Size,  ipp64f ,  &specSize_LF,  &bufSize_LF );
+
     nSize=m_stSettingSM.FilteBuff_Size;
     dlysrc_LF   = ippsMalloc_64f(nSize-1);
     dlydst_LF   = ippsMalloc_64f(nSize-1);
     ippsSet_64f(0, dlysrc_LF, nSize-1);
+
     pSpec_LF = (IppsFIRSpec_64f*)ippsMalloc_8u(specSize_LF); //specSize
     buf_LF   = ippsMalloc_8u(bufSize_LF); //bufSize
     ippsFIRSRInit_64f( m_stSettingSM.FilteBuff, nSize, ippAlgDirect, pSpec_LF );
@@ -1084,15 +1160,15 @@ void Mode_SM::SaveSignalNxt(void)
 {
 
 
-//    if ((m_pConfig->m_stInputFile.bInputIQ && m_stSettingSM.enTypeManipulation != OMT_CARRIER_SHIFT) || (m_stSettingSM.enTypeManipulation == OMT_BaseBandConv))
-//    {
-//        m_pConfig->WriteToSaveFileIQ(&m_pdSignalNxt_I[0],m_pdSignalNxt_Q, m_iSizeSignalNxt);
-//    }
-//    else
-//    {
-//        m_pConfig->WriteToSaveFile(m_pdSignalNxt, m_iSizeSignalNxt);
+    if ((m_pConfig->m_stInputFile.bInputIQ && m_stSettingSM.enTypeManipulation != OMT_CARRIER_SHIFT) || (m_stSettingSM.enTypeManipulation == OMT_BaseBandConv))
+    {
+        m_pConfig->WriteToSaveFileIQ(&m_pdSignalNxt_I[0],m_pdSignalNxt_Q, m_iSizeSignalNxt);
+    }
+    else
+    {
+        m_pConfig->WriteToSaveFile(&m_pdSignalNxt[0], m_iSizeSignalNxt);
 
-//    }
+    }
 
 }
 bool Mode_SM::Interpolate(void)
@@ -1403,28 +1479,29 @@ bool Mode_SM::CalcFilterResponse(void)
     int iSizeFFT = m_stSettingSM.stFFTPre.iSizeFFT;
     int nNumTaps = m_stSettingSM.stFilterFIR.nNumTaps;
 
-    QVector<double> pdSignalStep(iSizeFFT);
-    QVector<double> pdSignalFilter(iSizeFFT);
-    QVector<double> pdOutFFTFilter(iSizeFFT);
+    double *pdSignalStep=new double[iSizeFFT];
+    double *pdSignalFilter=new double[iSizeFFT];
+    double *pdOutFFTFilter=new double[iSizeFFT];
+
 
 
     if(m_stSettingSM.enTypeManipulation == OMT_FILTER_FIR)
     {
-        /*
+
         nNumTaps = m_stSettingSM.stFilterFIR.nNumTaps;
         for(int i=0; i<nNumTaps; i++)
-        pdSignalFilter[i] = m_filterFIR.m_pdFilterCoeff[i];
+        pdSignalFilter[i] =taps_ippLPF[i];
         for(int i=nNumTaps; i<iSizeFFT; i++)
-        pdSignalFilter[i] = 0;*/
+        pdSignalFilter[i] = 0;
     }
     else if(m_stSettingSM.enTypeManipulation == OMT_FILTER_IIR)
     {
-//        m_filterIIR.ResetFilter();
-//        for(int i=0; i<iSizeFFT; i++)
-//            pdSignalStep[i] = 0;
-//        pdSignalStep[0] = 1;
-//        m_filterIIR.Filter(pdSignalStep, iSizeFFT, pdSignalFilter);
-//        m_filterIIR.ResetFilter();
+        //m_filterIIR.ResetFilter();
+        for(int i=0; i<iSizeFFT; i++)
+            pdSignalStep[i] = 0;
+        pdSignalStep[0] = 1;
+        //m_filterIIR.Filter(pdSignalStep, iSizeFFT, pdSignalFilter);
+        //m_filterIIR.ResetFilter();
     }
     else if(m_stSettingSM.enTypeManipulation == OMT_LoadFilter)
     {
@@ -1479,7 +1556,7 @@ bool Mode_SM::CalcFilterResponse(void)
 
 
         double dOffsetSpectrum = m_pConfig->GetOffsetSpectrum();
-        double dValue = 20*log10(pdOutFFTFilter[i + m_iIndexStartSpectrum]) + /*67*/dOffsetSpectrum;
+        double dValue = 20*log10(pdOutFFTFilter[i + m_iIndexStartSpectrum]) + 67;
 
         if(i == 0)
         {
@@ -1496,11 +1573,125 @@ bool Mode_SM::CalcFilterResponse(void)
         m_pdSpectrumFilter_X[i]=((float)i*((float)(m_pConfig->m_stInputFile.dSamplingFrequency*1e6))/(float)m_stSettingSM.stFFTPre.iSizeFFT);
     }
     DrawSpectrum_FilterResponse(m_pdSpectrumFilter_X,m_pdSpectrumFilter_Y);
-    pdSignalFilter.clear();
-    pdOutFFTFilter.clear();
-    pdSignalStep.clear();
 
+    delete []pdSignalFilter;
+    delete []pdOutFFTFilter;
+    delete []pdSignalStep;
     return true;
 }
+void Mode_SM::RunConvert(bool bRun)
+{
+    if(bRun)
+    {
+        if(!m_pConfig->m_bLoadedFileSave)
+            return;
 
+        m_pConfig->GotoFileStartPos();
+        m_iSizeConvert = m_pConfig->GetInputFileSampleSize();
+        m_iIndexConvert = 0;
+        m_iCounterCarrierShift = 0;
+        StopSpectrum();
+        StartConvertThread();
+    }
+    else
+    {
+        StopConvertThread();
+        m_pConfig->CloseSaveFile();
+    }
+}
+
+
+void Mode_SM::ThreadConvert()
+{
+
+    m_bRunConvert = true;
+
+    while (!m_bKillThreadConvert)
+    {
+       // EnterCriticalSection(&m_csAccessParam);
+
+        if(!ConvertBuffer())
+        {
+            m_bKillThreadConvert = true;
+            //AfxMessageBox(_T("Finish Record!"));
+        }
+
+       // LeaveCriticalSection(&m_csAccessParam);
+    }
+
+    m_pConfig->CloseSaveFile();
+
+    m_bRunConvert = false;
+}
+void Mode_SM::OpenSaveFile(QString strAddr)
+{
+    m_pConfig->OpenSaveFile(strAddr);
+}
+bool Mode_SM::ConvertBuffer(void)
+{
+    if(ReadDataFromFile())
+    {
+
+        if(m_stSettingSM.enTypeManipulation == OMT_FILTER_FIR)
+        {
+            FilterFIR();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_FILTER_IIR)
+        {
+            FilterIIR();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_LoadFilter)
+        {
+            LoadFilter();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_CARRIER_SHIFT)
+        {
+            CarierShift();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_BaseBandConv)
+        {
+            BaseBandConverter();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_PHASE_SHIFT)
+        {
+            PhaseShift();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_CHANGE_RATE)
+        {
+            Upsampling();   //Interpolate(); //iAddedNew
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_DOWN_RATE)
+        {
+            DownRate();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == OMT_DC_REMOVAL)
+        {
+            RemoveDC();
+            SaveSignalNxt();
+        }
+        else if(m_stSettingSM.enTypeManipulation == NONE)
+        {
+            m_pConfig->WriteToSaveFile(&m_pdSignal[0], m_iSizeSignalNxt);
+        }
+        else
+            return false;
+
+//        if(!m_pConfig->wavefile)
+//            m_iIndexConvert = m_pConfig->m_fileInput.GetPosition();
+//        else
+//            m_iIndexConvert+=2*4096;
+
+
+        return true;
+    }
+    return false;
+}
 

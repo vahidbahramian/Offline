@@ -2,7 +2,11 @@
 
 Mode_SA::Mode_SA()
 {
-
+    m_pdSignal = NULL;
+    m_pdOutFFT = NULL;
+    m_pdMaxHoldSpectrum = NULL;
+    m_pdMaxHoldPhaseErr = NULL;
+    ScatterBuff=NULL;
 }
 void Mode_SA::InitGraph(Ui::MainWindow *ui)
 {
@@ -91,6 +95,56 @@ void Mode_SA::initializePlot()
     signalanalyzer_WaterWall->xAxis->setLabel("Angle");
     signalanalyzer_WaterWall->yAxis->setLabel("Time");
 }
+bool Mode_SA::ReadDataFromFile(void)
+{
+//	CreateVirtualSignal();
+    bool bReadResult=0;
+
+    if(m_pConfig->m_bLoadedFileInput)
+    {
+        int iSizeFFT = m_stSettingSA.stFFT.iSizeFFT;
+        double dOverlapRatio = m_stSettingSA.stSpectrum.dOverlapRatio;
+
+
+        int iStartFile = 0;
+        if((dOverlapRatio > 0) && (dOverlapRatio < 1))
+        {
+            iStartFile = int(dOverlapRatio * iSizeFFT);
+
+            for(int i=0; i<iStartFile; i++)
+                m_pdSignal[i] = m_pdSignal[iSizeFFT - iStartFile - 1 + i];
+        }
+
+
+        //----------------------------------------------------------
+        //--- Read Data from File ----------------------------------
+        //----------------------------------------------------------
+        if(m_bKillThreadSpectrum || m_pConfig->IsEndOfFile())
+            return false;
+        if ( m_pConfig->wavefile)
+            bReadResult=false;
+        else
+        {
+            m_pConfig->ReadFromInputFile(&m_pdSignal[iStartFile], iSizeFFT - iStartFile);
+            bReadResult=true;
+        }
+
+
+
+        //--- Space
+        if(dOverlapRatio < 0)
+        {
+            int iSizeSpace = abs(dOverlapRatio) * iSizeFFT;
+            m_pConfig->GotoNextSample(iSizeSpace);
+        }
+
+        m_iCounterReadFromFile += iSizeFFT;
+        m_iCounterFrameFromFile++;
+    }
+
+    return (!m_pConfig->IsEndOfFile()) && bReadResult;
+}
+
 bool Mode_SA::LoadDataFile(QString path)
 {
     if(m_pConfig->OpenInputFile(path))
@@ -163,14 +217,14 @@ bool Mode_SA::SetParameters(SA_ALL_SETTING stSettingSA)
         m_pdSpectrum_X.clear();
     if(!m_pdSpectrum_Y.isEmpty())
         m_pdSpectrum_Y.clear();
-    if(!m_pdMaxHoldSpectrum.isEmpty())
-        m_pdMaxHoldSpectrum.clear();
-    if(!m_pdMaxHoldPhaseErr.isEmpty())
-        m_pdMaxHoldPhaseErr.clear();
-    if(!m_pdSignal.isEmpty())
-        m_pdSignal.clear();
-    if(!m_pdOutFFT.isEmpty())
-        m_pdOutFFT.clear();
+    if(m_pdMaxHoldSpectrum)
+        delete [] m_pdMaxHoldSpectrum;
+    if(m_pdMaxHoldPhaseErr)
+        delete []m_pdMaxHoldPhaseErr;
+    if(m_pdSignal)
+        delete [] m_pdSignal;
+    if(m_pdOutFFT)
+        delete [] m_pdOutFFT;
 
 
     double dSamplingFrequency = m_pConfig->m_stInputFile.dSamplingFrequency;
@@ -186,8 +240,8 @@ bool Mode_SA::SetParameters(SA_ALL_SETTING stSettingSA)
 
 
     //--- FFT
-    m_pdSignal.resize(m_stSettingSA.stFFT.iSizeFFT);
-    m_pdOutFFT.resize(m_stSettingSA.stFFT.iSizeFFT);
+    m_pdSignal=new double[m_stSettingSA.stFFT.iSizeFFT];
+    m_pdOutFFT=new double[m_stSettingSA.stFFT.iSizeFFT];
     m_calcFFT.SetParameters(m_stSettingSA.stFFT);
 
 
@@ -201,11 +255,11 @@ bool Mode_SA::SetParameters(SA_ALL_SETTING stSettingSA)
 
 
     //--- Max Hold Buffer
-    m_pdMaxHoldSpectrum.resize(m_iSizeSpectrum);
+    m_pdMaxHoldSpectrum=new double[m_iSizeSpectrum];
     for(int i=0; i<m_iSizeSpectrum; i++)
         m_pdMaxHoldSpectrum[i] = -1e6;
 
-    m_pdMaxHoldPhaseErr.resize(300);
+    m_pdMaxHoldPhaseErr=new double[300];
     for(int i=0; i<300; i++)
         m_pdMaxHoldPhaseErr[i] = -15000;
 
@@ -246,7 +300,7 @@ void Mode_SA::DrawingWaterfall(QVector<double> Power, int Scale_Angles)
     m.unlock();
 }
 
-void Mode_SA::CalculateSpectrum(QVector<double> m_pdOutFFT)
+void Mode_SA::CalculateSpectrum(double *m_pdOutFFT)
 {
     for (int i=0; i< m_iSizeSpectrum; i++)
     {
@@ -294,7 +348,7 @@ bool Mode_SA::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
 }
 void Mode_SA::PlaySpectrum()
 {
-        if(m_pConfig->ReadFromInputFile(m_pdSignal, m_stSettingSA.stFFT.iSizeFFT*2))
+        if(ReadDataFromFile())
         {
             m_calcFFT.CalcFFT(m_pdSignal,m_pdOutFFT);
             CalculateSpectrum(m_pdOutFFT);
@@ -304,3 +358,4 @@ void Mode_SA::PlaySpectrum()
 
 
 }
+

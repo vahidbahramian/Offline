@@ -378,14 +378,14 @@ void MainWindow::on_Btn_Setting_Apply_clicked()
 
 
     m_pConfig->ArrangeInputFile(&m_pConfig->m_stInputFile);
-//    m_iMinValue = m_pConfig->m_stInputFile.iMinValueA2D;
-//    m_iMaxValue = m_pConfig->m_stInputFile.iMaxValueA2D;
+   // m_iMinValue = m_pConfig->m_stInputFile.iMinValueA2D;
+ //   m_iMaxValue = m_pConfig->m_stInputFile.iMaxValueA2D;
     m_pConfig->m_stInputFile.bInputIQ= ui->check_IQ->checkState();
-//    OSA_MAIN_MODES m_enCurMode = m_enLastMode;
+    OSA_MAIN_MODES m_enCurMode = m_enLastMode;
 //    if(m_enCurMode == OMM_SA)
 //        theApp.m_modeControl.m_modeSA.ReSetParameters();
-//    else if(m_enCurMode == OMM_FF)
-//       m_modeFF.SetParameters();
+   /* else*/ if(m_enCurMode == OMM_FF)
+       m_modeFF.ReSetParameters();
 //    else if(m_enCurMode == OMM_FH)
 //        theApp.m_modeControl.m_modeFH.ReSetParameters();
 //    else if(m_enCurMode == OMM_DS)
@@ -402,8 +402,8 @@ void MainWindow::on_Btn_FF_AutoEst_clicked()
     double FC;
     m_modeFF.ParamEstimate(m_modeFF.demod_Spectrum->x1out/1e6,m_modeFF.demod_Spectrum->x2out/1e6,FC);
     ui->txt_FcEstimate->setText(QString::number(FC));
-    ui->txt_RSEstimate->setText(QString::number(0));
-    ui->txt_AMREstimate->setText(g_strOSD_DEMOD_TYPE[1]);
+//    ui->txt_RSEstimate->setText(QString::number(0));
+//    ui->txt_AMREstimate->setText(g_strOSD_DEMOD_TYPE[1]);
 }
 
 void MainWindow::on_Btn_SM_FIleLoad_clicked()
@@ -428,6 +428,7 @@ void MainWindow::on_combo_sm_FilterResponse_activated(int index)
 
 void MainWindow::on_Btn_SM_Stop_clicked()
 {
+    m_pConfig->CloseSaveFile();
     m_modeSM.Close();
 }
 
@@ -447,3 +448,18 @@ void MainWindow::on_btn_SA_stopSpectrum_clicked()
 {
     m_modeSA.Close();
 }
+
+void MainWindow::on_Btn_DSSS_LoadFile_clicked()
+{
+
+}
+void MainWindow::on_btn_record_sm_clicked()
+{
+    m_modeSM.RunConvert(!m_modeSM.IsRunConvert());
+}
+void MainWindow::on_btn_open_rec_sm_clicked()
+{
+    QString filter = "(*.bin)";
+    m_pConfig->OpenSaveFile(QFileDialog::getSaveFileName(this, "Select a file...", QDir::homePath(), filter));
+}
+

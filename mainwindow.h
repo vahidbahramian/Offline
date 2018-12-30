@@ -51,23 +51,16 @@ private slots:
      void on_Btn_FF_FCEstimate_clicked();
      void on_Btn_Setting_Apply_clicked();
      void on_Btn_FF_AutoEst_clicked();
-
      void on_Btn_SM_FIleLoad_clicked();
-
      void on_Btn_SM_PlaySPectrum_clicked();
-
-
-
-
      void on_combo_sm_FilterResponse_activated(int index);
-
      void on_Btn_SM_Stop_clicked();
-
      void on_Btn_SA_FileLoad_clicked();
-
      void on_Btn_SA_PlaySPectrum_clicked();
-
      void on_btn_SA_stopSpectrum_clicked();
+     void on_Btn_DSSS_LoadFile_clicked();
+     void on_btn_record_sm_clicked();
+     void on_btn_open_rec_sm_clicked();
 
 public:
     Ui::MainWindow *ui;

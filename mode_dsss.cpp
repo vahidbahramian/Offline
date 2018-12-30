@@ -2,6 +2,11 @@
 
 Mode_DSSS::Mode_DSSS()
 {
+    m_pdSignal = NULL;
+    m_pdOutFFT = NULL;
+    m_pdMaxHoldSpectrum = NULL;
+    m_pdMaxHoldPhaseErr = NULL;
+    ScatterBuff=NULL;
 
 }
 void Mode_DSSS::InitGraph(Ui::MainWindow *ui)
@@ -183,15 +188,14 @@ bool Mode_DSSS::SetParameters(DS_ALL_SETTING stSettingDS)
         m_pdSpectrum_X.clear();
     if(!m_pdSpectrum_Y.isEmpty())
         m_pdSpectrum_Y.clear();
-    if(!m_pdMaxHoldSpectrum.isEmpty())
-        m_pdMaxHoldSpectrum.clear();
-    if(!m_pdMaxHoldPhaseErr.isEmpty())
-        m_pdMaxHoldPhaseErr.clear();
-    if(!m_pdSignal.isEmpty())
-        m_pdSignal.clear();
-    if(!m_pdOutFFT.isEmpty())
-        m_pdOutFFT.clear();
-
+    if(m_pdMaxHoldSpectrum)
+        delete [] m_pdMaxHoldSpectrum;
+    if(m_pdMaxHoldPhaseErr)
+        delete []m_pdMaxHoldPhaseErr;
+    if(m_pdSignal)
+        delete [] m_pdSignal;
+    if(m_pdOutFFT)
+        delete [] m_pdOutFFT;
 
     double dSamplingFrequency = m_pConfig->m_stInputFile.dSamplingFrequency;
 
@@ -206,9 +210,8 @@ bool Mode_DSSS::SetParameters(DS_ALL_SETTING stSettingDS)
 
 
     //--- FFT
-
-    m_pdSignal.resize(m_stSettingDS.stFFT.iSizeFFT);
-    m_pdOutFFT.resize(m_stSettingDS.stFFT.iSizeFFT);
+    m_pdSignal=new double[m_stSettingDS.stFFT.iSizeFFT];
+    m_pdOutFFT=new double[m_stSettingDS.stFFT.iSizeFFT];
     if(!m_calcFFT.IsFFTCreated())
         m_calcFFT.SetParameters(m_stSettingDS.stFFT);
 
@@ -223,11 +226,11 @@ bool Mode_DSSS::SetParameters(DS_ALL_SETTING stSettingDS)
 
 
     //--- Max Hold Buffer
-    m_pdMaxHoldSpectrum.resize(m_iSizeSpectrum);
+    m_pdMaxHoldSpectrum=new double[m_iSizeSpectrum];
     for(int i=0; i<m_iSizeSpectrum; i++)
         m_pdMaxHoldSpectrum[i] = -1e6;
 
-    m_pdMaxHoldPhaseErr.resize(300);
+    m_pdMaxHoldPhaseErr=new double[300];
     for(int i=0; i<300; i++)
         m_pdMaxHoldPhaseErr[i] = -15000;
 
@@ -241,7 +244,7 @@ void Mode_DSSS::DrawSpectrum(QVector<double> X,QVector<double> Y)
         dsss_Spectrum->replot(QCustomPlot::rpImmediate);
 
 }
-void Mode_DSSS::CalculateSpectrum(QVector<double> m_pdOutFFT)
+void Mode_DSSS::CalculateSpectrum(double *m_pdOutFFT)
 {
     for (int i=0; i< m_iSizeSpectrum; i++)
     {
@@ -266,6 +269,60 @@ void Mode_DSSS::CalculateSpectrum(QVector<double> m_pdOutFFT)
         m_pdSpectrum_X[i]=((float)i*((float)(m_pConfig->m_stInputFile.dSamplingFrequency*1e6))/(float)m_stSettingDS.stFFT.iSizeFFT);
     }
 }
+bool Mode_DSSS::ReadDataFromFile(void)
+{
+    bool bReadResult=0;
+//	CreateVirtualSignal();
+/*
+    if(m_pConfig->m_bLoadedFileInput)
+    {
+        int iSizeFFT = m_stSettingDS.stFFT.iSizeFFT;
+        for(int i=0; i<iSizeFFT; i++)
+        {
+            if(m_bKillThreadSpectrum)
+                return FALSE;
+
+            if(m_pConfig->IsEndOfFile())
+                return false;
+
+            double dData;
+            m_pConfig->ReadFromInputFile(&dData, 1);
+
+            m_pdSignal[i] = dData;
+        }
+    }
+
+    return true;
+*/
+
+
+
+    if(m_pConfig->m_bLoadedFileInput)
+    {
+        int iSizeFFT =  m_stSettingDS.stFFT.iSizeFFT;
+
+
+        //----------------------------------------------------------
+        //--- Read Data from File ----------------------------------
+        //----------------------------------------------------------
+        if(m_bKillThreadSpectrum || m_pConfig->IsEndOfFile())
+            return false;
+
+        if ( m_pConfig->wavefile)
+            bReadResult=false;
+        else
+        {
+            m_pConfig->ReadFromInputFile(m_pdSignal, iSizeFFT);
+            bReadResult=true;
+        }
+
+
+
+    }
+
+    return bReadResult;//(!m_pConfig->IsEndOfFile());
+}
+
 bool Mode_DSSS::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
 {
     pw_ui=ui;
@@ -289,7 +346,7 @@ bool Mode_DSSS::Initialize(Configuration *pConfig , Ui::MainWindow *ui)
 }
 void Mode_DSSS::PlaySpectrum()
 {
-        if(m_pConfig->ReadFromInputFile(m_pdSignal, m_stSettingDS.stFFT.iSizeFFT*2))
+        if(ReadDataFromFile())
         {
             m_calcFFT.CalcFFT(m_pdSignal,m_pdOutFFT);
             CalculateSpectrum(m_pdOutFFT);
@@ -298,3 +355,5 @@ void Mode_DSSS::PlaySpectrum()
 
 
 }
+
+

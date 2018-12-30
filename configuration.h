@@ -16,7 +16,6 @@
 #include <QColor>
 
 #define PI 3.1415926535897932384626433832795
-
 //--- FFT Window types
 enum FFT_WINDOW_TYPE {FWT_NONE, FWT_BOXCAR, FWT_TRIANG, FWT_HAMMING, FWT_HANNING, FWT_BLACKMAN, FWT_FLATTOP, FWT_KAISER};
 #define nOSD_DEMOD_TYPE 37
@@ -218,9 +217,10 @@ public:
     void CloseSaveFile(void);
 
 
-    bool ReadFromInputFile(QVector<double> &pdDataInput, int iSize);
+    bool ReadFromInputFile(double *pdDataInput, int iSize);
     bool ReadFromInputFile2( QVector<double> *pdDataInput, int iSize);
     bool ReadFromInputFileIQ( QVector<double> *pdDataI,  QVector<double> *pdDataQ, int iSize);
+    bool ReadFromInputFileIQ_wave(double *pdDataI, double *pdDataQ, int iSize);
 
     bool ScaleTimingSignal( QVector<double> *pdDataIn, int iSize,  QVector<double> *pdTimingSignal);
     double GetOffsetSpectrum(void);
@@ -232,10 +232,11 @@ public:
 
 
     void CreateDemodBitmaps(ALL_DEMOD_BITMAP *pstDemodBitmaps);
-
+     bool wavefile;
+    int iSizeFileRecord;
 
 };
-
+void readTest();
 class CCalculateFFT
 {
 public:
@@ -243,7 +244,7 @@ public:
     ~CCalculateFFT();
 public:
     bool SetParameters(FFT_SETTING stSettingFFT);
-    bool CalcFFT(QVector<double> In,QVector<double> &Out);
+    bool CalcFFT(double *In, double *Out);
     bool bFFTCreated;
     bool IsFFTCreated(void){return bFFTCreated;}
 
@@ -264,6 +265,7 @@ private:
     FFT_SETTING				m_stSettingFFT;
     double					*m_pdWindow;
     double					*m_pdInputBlock;
+    Ipp64f *img;
 
 
 private:

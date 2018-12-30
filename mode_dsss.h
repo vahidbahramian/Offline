@@ -10,7 +10,6 @@
 #include <vector>
 #include "configuration.h"
 
-
 struct DS_ALL_SETTING
 {
     FFT_SETTING			stFFT;
@@ -42,8 +41,9 @@ public:
     void StopSpectrum(void);
     bool StartSpectrum(void);
     bool LoadDataFile(QString path);
+    bool ReadDataFromFile(void);
     bool SetParameters(DS_ALL_SETTING stSettingSA);
-    void CalculateSpectrum(QVector<double> m_pdOutFFT);
+    void CalculateSpectrum(double *m_pdOutFFT);
     void DrawSpectrum(QVector<double> X,QVector<double> Y);
 
 private:
@@ -67,13 +67,13 @@ public:
     bool IsStartSelect(void){return m_bStartSelect;}
 public:
     QString name;
-    QVector<double> m_pdOutFFT;
     QVector<double> m_pdSpectrum_X;
     QVector<double> m_pdSpectrum_Y;
-    QVector<double> m_pdMaxHoldSpectrum;
-    QVector<double> m_pdMaxHoldPhaseErr;
-    QVector<double> ScatterBuff;
-    QVector<double> m_pdSignal;
+    double *m_pdOutFFT;
+    double *m_pdMaxHoldSpectrum;
+    double *m_pdMaxHoldPhaseErr;
+    double *ScatterBuff;
+    double *m_pdSignal;
     bool m_bInSettingMode;
 public : //Spectrum
     int		m_iSizeSpectrum;
@@ -81,6 +81,7 @@ public : //Spectrum
     int		m_iIndexStopSpectrum;
     bool	m_bUseAverageSpectrum;
     bool	m_bShowMaxHoldSpectrum;
+
 };
 
 #endif // MODE_DSSS_H

@@ -4,6 +4,8 @@ Configuration::Configuration()
 {
     m_bLoadedFileInput=0;
     m_strAddrFileInput="";
+    wavefile=false;
+    iSizeFileRecord=0;
 }
 bool Configuration::Initialize(void)
 {
@@ -118,6 +120,33 @@ double Configuration::GetOffsetSpectrum(void)
 {
     return -30.0;
 }
+
+bool Configuration::OpenSaveFile(QString strAddrFile)
+{
+//    CFileException ex;
+    m_bLoadedFileSave = false;
+    m_fileSave.setFileName(strAddrFile);
+    if (! m_fileSave.open(QFile::WriteOnly))
+    {
+        qDebug("Cannot open file");
+        return false;
+    }
+
+    m_bLoadedFileSave = true;
+    m_strAddrFileSave = strAddrFile;
+
+    return true;
+}
+
+void Configuration::CloseSaveFile(void)
+{
+    if(m_bLoadedFileSave)
+    {
+        m_bLoadedFileSave = false;
+        m_fileSave.close();
+    }
+}
+
 bool Configuration::WriteToSaveFileIQ(double *pdDataI, double *pdDataQ, int iSize)
 {
 //    if(!m_bLoadedFileSave)
@@ -163,85 +192,87 @@ bool Configuration::WriteToSaveFileIQ(double *pdDataI, double *pdDataQ, int iSiz
 }
 bool Configuration::WriteToSaveFile(double *pdData, int iSize)
 {
-//    if(!m_bLoadedFileSave)
-//        return false;
+    if(!m_bLoadedFileSave)
+        return false;
 
-//    int iMinValueA2D = m_stInputFile.iMinValueA2D;
-//    int iMaxValueA2D = m_stInputFile.iMaxValueA2D;
+    int iMinValueA2D = m_stInputFile.iMinValueA2D;
+    int iMaxValueA2D = m_stInputFile.iMaxValueA2D;
 
 
-//    if(m_stInputFile.enByteNum == IFB_1B)
-//    {
-//        /*			BYTE nData;
+    if(m_stInputFile.enByteNum == IFB_1B)
+    {
+//       char nData;
 
 //        fscanf_s(pFile, "%c", &nData);
 
 //        fData = nData;
 //        if(m_stInputFile.bSignedValue)
 //        fData = (signed)nData;
-//        */
-//    }
-//    else if(m_stInputFile.enByteNum == IFB_2B)
-//    {
-//        if(iSize == 1)
-//        {
-//            char pnData[2];
-//            qint16 iData16;
 
-//            for(int i=0; i<iSize; i++)
-//            {
-//                iData16 = pdData[i];//(pdData[i] - iMinValueA2D) * (pow(2.0,16) - 1) / (iMaxValueA2D - iMinValueA2D);
+    }
+    else if(m_stInputFile.enByteNum == IFB_2B)
+    {
+        if(iSize == 1)
+        {
+            char pnData[2];
+            qint16 iData16;
 
-//                memcpy(pnData, &iData16, 2);
+            for(int i=0; i<iSize; i++)
+            {
+                iData16 = pdData[i];//(pdData[i] - iMinValueA2D) * (pow(2.0,16) - 1) / (iMaxValueA2D - iMinValueA2D);
 
-//                if(m_stInputFile.bFirstLSB)
-//                {
-//                    m_fileSave.write(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
-//                    m_fileSave.write(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
-//                }
-//                else
-//                {
-//                    m_fileSave.write(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
-//                    m_fileSave.write(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
-//                }
-//            }
-//        }
-//        else
-//        {
-//            qint16 *piData16 = new qint16 [iSize];
-//            char *pnData = new char [iSize*2];
+                memcpy(pnData, &iData16, 2);
 
-//            if(m_stInputFile.bSignedValue)
-//            {
-//                for(int i=0; i<iSize; i++)
-//                    piData16[i] = pdData[i];
-//            }
-//            else
-//            {
-//                for(int i=0; i<iSize; i++)
-//                    piData16[i] = pdData[i];
-//            }
+                if(m_stInputFile.bFirstLSB)
+                {
+                    m_fileSave.write(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
+                    m_fileSave.write(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
+                }
+                else
+                {
+                    m_fileSave.write(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
+                    m_fileSave.write(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
+                }
+            }
+        }
+        else
+        {
+            qint16 *piData16 = new qint16 [iSize];
+            char *pnData = new char [iSize*2];
 
-
-//            if(!m_stInputFile.bFirstLSB)
-//            {
-//                memcpy(pnData, piData16, iSize*2);
-//                char nData;
-//                for(int i=0; i<iSize; i++)
-//                {
-//                    nData = pnData[2*i+0];
-//                    pnData[2*i+0] = pnData[2*i+1];
-//                    pnData[2*i+1] = nData;
-//                }
-//                memcpy(piData16, pnData, iSize*1);
-//            }
-//            m_fileSave.write(piData16, iSize*2);
+            if(m_stInputFile.bSignedValue)
+            {
+                for(int i=0; i<iSize; i++)
+                    piData16[i] = pdData[i];
+            }
+            else
+            {
+                for(int i=0; i<iSize; i++)
+                    piData16[i] = pdData[i];
+            }
 
 
-//            delete piData16;
-//            delete pnData;
-//        }
-//    }
+            if(!m_stInputFile.bFirstLSB)
+            {
+                memcpy(pnData, piData16, iSize*2);
+                char nData;
+                for(int i=0; i<iSize; i++)
+                {
+                    nData = pnData[2*i+0];
+                    pnData[2*i+0] = pnData[2*i+1];
+                    pnData[2*i+1] = nData;
+                }
+                memcpy(piData16, pnData, iSize*1);
+            }
+            m_fileSave.write(pnData, iSize*2);
+            iSizeFileRecord=iSizeFileRecord+iSize*2;
+            qDebug("size Record %d", iSizeFileRecord);
+
+
+            delete piData16;
+            delete pnData;
+        }
+    }
 //    else if(m_stInputFile.enByteNum == IFB_4B)
 //    {
 //        /*			BYTE pnData[4];
@@ -263,127 +294,246 @@ bool Configuration::WriteToSaveFile(double *pdData, int iSize)
     return true;
 }
 
-bool Configuration::ReadFromInputFile(QVector<double> &pdDataInput, int iSize)
+void Configuration::CheckSpectrumLimit(double& dStart, double& dStop)
+{
+    double dFs = m_stInputFile.dSamplingFrequency;
+    double dFs_2 = dFs / 2;
+    //dStop = dFs_2;
+    //dStop*=2;
+    if(dStart < 0)
+        dStart = 0;
+    if(dStop <= 0)
+        dStop = dFs_2;
+
+    if(dStop > dFs_2)
+        dStop = dFs_2;
+    if(dStart > dFs_2)
+        dStart = 0;
+
+    if(dStart >= dStop)
+    {
+        double dChange = dStart;
+        dStart = dStop;
+        dStop = dChange;
+    }
+}
+bool Configuration::ReadFromInputFileIQ_wave(double *pdDataI, double *pdDataQ, int iSize)
+{
+//	if(m_ulPosInputFile >= m_ulSizeInputFile)
+//		return false;
+
+//	if(m_stInputFile.enByteNum == IFB_1B)
+//	{
+//		short *pnData = new short [iSize*2];
+//		sf_read_short(m_pSndFile,pnData,m_stFileInfo.format);
+//		if(!m_stInputFile.bSignedValue)
+//		{
+//			for(int i=0; i<iSize; i++)
+//			{
+//				pdDataI[i] = (INT8)pnData[2*i+0];
+//				pdDataQ[i] = (INT8)pnData[2*i+1];
+//			}
+//		}
+//		else
+//		{
+//			for(int i=0; i<iSize; i++)
+//			{
+//				pdDataI[i] = pnData[2*i+0];
+//				pdDataQ[i] = pnData[2*i+1];
+//			}
+//		}
+//		SAFERELEASE_ARRAY(pnData);
+
+//	}
+//	else if(m_stInputFile.enByteNum == IFB_2B)
+//	{
+//		INT16 *piData = new INT16 [iSize*2];
+//		sf_read_short(m_pSndFile,piData,iSize*2);
+//		//m_fileInput.Read(piData, iSize*4);
+
+//		if(m_stInputFile.bSignedValue)
+//		{
+//			for(int i=0; i<iSize; i++)
+//			{
+//				pdDataI[i] = piData[2*i+0];
+//				pdDataQ[i] = piData[2*i+1];
+//			}
+//		}
+//		else
+//		{
+//			for(int i=0; i<iSize; i++)
+//			{
+//				pdDataI[i] = (unsigned)piData[2*i+0];
+//				pdDataQ[i] = (unsigned)piData[2*i+1];
+//			}
+//		}
+//		SAFERELEASE_ARRAY(piData);
+//	}
+
+//	//if (Count==0)
+//	//{
+//	//	m_ulPosInputFile += (4*iSize)+20;
+//	//}
+//	//else
+//	//{
+//		m_ulPosInputFile += (4*iSize);
+//	//}
+
+//	//Count++;
+    return true;
+}
+
+bool Configuration::ReadFromInputFile(double *pdDataInput, int iSize)
 {
     if(m_ulPosInputFile >= m_ulSizeInputFile)
-        return false;
+            return false;
 
-     m_fileInput.seek(m_ulPosInputFile);
-
-
-/*    if(m_stInputFile.encharNum == IFB_1B)
-    {
-        if(iSize == 1)
+        if(m_stInputFile.enByteNum == IFB_1B)
         {
-            char nData;
-            m_fileInput.read(&nData, 1);
-
-            pdDataInput[0] = nData;
-            if(m_stInputFile.bSignedValue)
-                pdDataInput[0] = (signed)nData;
-        }
-        else
-        {
-            char *pnData = new char [iSize];
-            m_fileInput.read(pnData, iSize);
-
-            if(m_stInputFile.bSignedValue)
+            if(iSize == 1)
             {
-                for(int i=0; i<iSize; i++)
-                    pdDataInput[i] = (int8_t)pnData[i];
+                char nData;
+                m_fileInput.read(&nData, 1);
+
+                pdDataInput[0] = nData;
+                if(m_stInputFile.bSignedValue)
+                    pdDataInput[0] = (signed)nData;
             }
             else
             {
-                for(int i=0; i<iSize; i++)
-                    pdDataInput[i] = pnData[i];
+                char *pnData = new char [iSize];
+                m_fileInput.read(pnData, iSize);
+
+                if(m_stInputFile.bSignedValue)
+                {
+                    for(int i=0; i<iSize; i++)
+                        pdDataInput[i] = (qint8)pnData[i];
+                }
+                else
+                {
+                    for(int i=0; i<iSize; i++)
+                        pdDataInput[i] = pnData[i];
+                }
             }
         }
-    }
-    else */
-    if(m_stInputFile.enByteNum == IFB_2B)
-    {
-        if(iSize == 1)
+        else if(m_stInputFile.enByteNum == IFB_2B)
         {
-            char pnData[2];
-            int16_t iData16;
+            if(iSize == 1)
+            {
+                char pnData[2];
+                qint16 iData16;
+
+                if(m_stInputFile.bFirstLSB)
+                {
+                    m_fileInput.read(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
+                    m_fileInput.read(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
+                }
+                else
+                {
+                    m_fileInput.read(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
+                    m_fileInput.read(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
+                }
+
+                memcpy(&iData16, pnData, 2);
+
+                pdDataInput[0] = iData16;
+                if(!m_stInputFile.bSignedValue)
+                    pdDataInput[0] = (unsigned)iData16;
+            }
+            else
+            {
+                qint16 *piData16 = new qint16 [iSize];
+                char *pnData = new char [(iSize*2)+1];
+
+                m_fileInput.read(pnData, iSize*2);
+                short tmp;
+                if(m_stInputFile.bSignedValue)
+                {
+                    for(int i=0; i<iSize*2; i+=2)
+                    {
+                        memcpy(&tmp,pnData+i,2);
+                        pdDataInput[i/2] = tmp;
+                    }
+                }
+                else
+                {
+                    for(int i=0; i<iSize*2; i+=2)
+                    {
+                        memcmp(&tmp,pnData+i,2);
+                        pdDataInput[i/2] =tmp;
+                    }
+                }
+
+                delete [] piData16;
+                delete [] pnData;
+            }
+
+
+        }
+        else if(m_stInputFile.enByteNum == IFB_4B)
+        {
+            char pnData[4];
+            qint32 iData32;
 
             if(m_stInputFile.bFirstLSB)
             {
                 m_fileInput.read(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
                 m_fileInput.read(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
+                m_fileInput.read(&pnData[2], 1);		// fscanf_s(pFile, "%c", &pnData[2]);
+                m_fileInput.read(&pnData[3], 1);		// fscanf_s(pFile, "%c", &pnData[3]);
             }
             else
             {
+                m_fileInput.read(&pnData[3], 1);		// fscanf_s(pFile, "%c", &pnData[3]);
+                m_fileInput.read(&pnData[2], 1);		// fscanf_s(pFile, "%c", &pnData[2]);
                 m_fileInput.read(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
                 m_fileInput.read(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
             }
 
-            memcpy(&iData16, pnData, 2);
+            memcpy(&iData32, pnData, 4);
 
-        }
-        else
-        {
-            char *pnData = new char [iSize];
-            m_fileInput.read(pnData, iSize);
-            short tmp;
-            if(m_stInputFile.bSignedValue)
-            {
-                for(int i=0; i<iSize; i+=2)
-                {
-                    memcpy(&tmp,pnData+i,2);
-                    pdDataInput[i/2] = tmp;
-                }
-            }
-            else
-            {
-                for(int i=0; i<iSize; i+=2)
-                {
-                    memcmp(&tmp,pnData+i,2);
-                    pdDataInput[i/2] =tmp;
-                }
-            }
-            //delete piData16;
-            delete pnData;
+            pdDataInput[0] = iData32;
+            if(!m_stInputFile.bSignedValue)
+                pdDataInput[0] = (unsigned)iData32;
         }
 
+        m_ulPosInputFile = m_fileInput.pos();
 
-    }
-//    else if(m_stInputFile.encharNum == IFB_4B)
-//    {
-//        char pnData[4];
-//        int32_t iData32;
-
-//        if(m_stInputFile.bFirstLSB)
-//        {
-//            m_fileInput.read(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
-//            m_fileInput.read(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
-//            m_fileInput.read(&pnData[2], 1);		// fscanf_s(pFile, "%c", &pnData[2]);
-//            m_fileInput.read(&pnData[3], 1);		// fscanf_s(pFile, "%c", &pnData[3]);
-//        }
-//        else
-//        {
-//            m_fileInput.read(&pnData[3], 1);		// fscanf_s(pFile, "%c", &pnData[3]);
-//            m_fileInput.read(&pnData[2], 1);		// fscanf_s(pFile, "%c", &pnData[2]);
-//            m_fileInput.read(&pnData[1], 1);		// fscanf_s(pFile, "%c", &pnData[1]);
-//            m_fileInput.read(&pnData[0], 1);		// fscanf_s(pFile, "%c", &pnData[0]);
-//        }
-
-//        memcpy(&iData32, pnData, 4);
-
-//        pdDataInput[0] = iData32;
-//        if(!m_stInputFile.bSignedValue)
-//            pdDataInput[0] = (unsigned)iData32;
-//    }
-
-    m_ulPosInputFile = m_fileInput.pos();
-
-    return true;
+        return true;
 }
+void readTest()
+{
+//    if(m_ulPosInputFile >= m_ulSizeInputFile)
+//        return false;
+
+//     m_fileInput.seek(m_ulPosInputFile);
+//    char *pnData = new char [iSize];
+//    m_fileInput.read(pnData, iSize);
+//    short tmp;
+//    if(m_stInputFile.bSignedValue)
+//    {
+//        for(int i=0; i<iSize; i+=2)
+//        {
+//            memcpy(&tmp,pnData+i,2);
+//            pdDataInput[i/2] = tmp;
+//        }
+//    }
+//    else
+//    {
+//        for(int i=0; i<iSize; i+=2)
+//        {
+//            memcmp(&tmp,pnData+i,2);
+//            pdDataInput[i/2] =tmp;
+//        }
+//    }
+//    //delete piData16;
+//    delete pnData;
+}
+
 CCalculateFFT::CCalculateFFT(void)
 {
     m_pdWindow = NULL;
     m_pdInputBlock = NULL;
-
     m_stSettingFFT.iSizeFFT = 0;
     m_stSettingFFT.enWindowType = FWT_HANNING;
 //    SetParameters(m_stSettingFFT);
@@ -452,23 +602,18 @@ bool CCalculateFFT::SetParameters(FFT_SETTING stSettingFFT)
 
     return true;
 }
-bool CCalculateFFT::CalcFFT(QVector<double> In,QVector<double> &Out)
+bool CCalculateFFT::CalcFFT(double *In,double *Out)
 {
-    Ipp64f *img;
-    img=ippsMalloc_64f(m_stSettingFFT.iSizeFFT);
-    ippsZero_64f(img, m_stSettingFFT.iSizeFFT);
-    ippsCopy_64f(&In[0], src, m_stSettingFFT.iSizeFFT);
-    ippsRealToCplx_64f((Ipp64f*)src,(Ipp64f*)img,FFT_in_out,m_stSettingFFT.iSizeFFT);
+    ippsRealToCplx_64f((Ipp64f*)In,(Ipp64f*)img,FFT_in_out,m_stSettingFFT.iSizeFFT);
     ippsFFTFwd_CToC_64fc_I(FFT_in_out,(IppsFFTSpec_C_64fc*) pSpec,workBuffer);
-    ippsCplxToReal_64fc(FFT_in_out,dst,img,m_stSettingFFT.iSizeFFT);
-    ippsCopy_64f(dst, &Out[0], m_stSettingFFT.iSizeFFT);
-    ippsFree(img);
-
+    ippsCplxToReal_64fc(FFT_in_out,Out,img,m_stSettingFFT.iSizeFFT);
 }
 
 
 void CCalculateFFT::InitParamFFT()
 {
+    img=ippsMalloc_64f(m_stSettingFFT.iSizeFFT);
+    ippsZero_64f(img, m_stSettingFFT.iSizeFFT);
     FFT_in_out=ippsMalloc_64fc(m_stSettingFFT.iSizeFFT);
     eps=2.220446049250313e-16;
     ippsFFTGetSize_C_64fc(m_stSettingFFT.FFT_order,IPP_FFT_DIV_FWD_BY_N, ippAlgHintNone,&pSpecSize,&pSpecBufferSize,&pBufferSize);
@@ -479,20 +624,12 @@ void CCalculateFFT::InitParamFFT()
     ippsFFTInit_C_64fc(ppFFTSpec, m_stSettingFFT.FFT_order,IPP_FFT_DIV_FWD_BY_N, ippAlgHintNone,pSpec,pSpecBuffer);
 
     //-----------
-
-
-    src   = ippsMalloc_64f(m_stSettingFFT.iSizeFFT);
-    dst   = ippsMalloc_64f(m_stSettingFFT.iSizeFFT);
     bFFTCreated=true;
 
 }
 void CCalculateFFT::CloseParamFFT(void)
 {
 
-    if(src)
-         delete src;
-    if(dst)
-         delete dst;
 
     if(pSpec)
           delete pSpec;
@@ -630,3 +767,4 @@ void CCalculateFFT::flattop(int n,double* w)
     for (i=0; i<n; i++)
         *w++ = 0.2810638602 - 0.5208971735*cos(k1*(double)i) + 0.1980389663*cos(k2*(double)i);
 }
+

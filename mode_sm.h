@@ -14,9 +14,9 @@
 #define n_FILTER_TYPE   10
 enum OSA_MANIPULATE_TYPE { OMT_FILTER_FIR, OMT_FILTER_IIR, OMT_CARRIER_SHIFT, OMT_PHASE_SHIFT, OMT_CHANGE_RATE,
                            OMT_DOWN_RATE, OMT_DC_REMOVAL, OMT_BaseBandConv,OMT_LoadFilter ,NONE};
-const QString g_str_MANIPULATE_TYPE[n_FILTER_TYPE] = {"FILTER_FIR" ,"FILTER_IIR"
-                                                      ,"CARRIER_SHIFT" ,"PHASE_SHIFT" ,"CHANGE_RATE"
-                                                      ,"DOWN_RATE","DC_REMOVAL" ,"BaseBandConv","LoadFilter","NONE"};
+const QString g_str_MANIPULATE_TYPE[n_FILTER_TYPE] = {"FIR FILTER" ,"IIR FILTER"
+                                                      ,"CARRIER SHIFT" ,"PHASE SHIFT" ,"CHANGE RATE"
+                                                      ,"DOWN RATE","DC REMOVAL" ,"BaseBandConv","LoadFilter","NONE"};
 
 enum TPassType {LPF, HPF, BPF, NOTCH };
 
@@ -73,11 +73,25 @@ class Mode_SM : public QWidget
     Q_OBJECT
 public:
     Mode_SM();
-
+    ~Mode_SM();
+QThread thread;
 public slots:
     void PlaySpectrum();
+    void ThreadConvert();
 
 public:
+    void StartConvertThread()
+    {
+        moveToThread(&thread);
+        m_bKillThreadConvert = false;
+        connect(&thread,SIGNAL(started()),this,SLOT(ThreadConvert()));
+        thread.start(QThread::HighestPriority);
+    }
+    void StopConvertThread()
+    {
+        thread.destroyed();
+    }
+
     CustomPlotZoom *signalManipulation_Spectrum;
     CustomPlotZoom *signalManipulation_FilterResponse;
     CustomPlotZoom *signalManipulation_Spectrum2;
@@ -90,11 +104,13 @@ public:
     void Close(void);
     void StopSpectrum(void);
     bool StartSpectrum(void);
+    bool ReadDataFromFile(void);
     bool LoadDataFile(QString path);
     bool SetParameters(SM_ALL_SETTING stSettingSM);
-    void CalculateSpectrum(QVector<double> m_pdOutFFT);
+    void CalculateSpectrum(double *m_pdOutFFT);
     bool CalculateSpectrumInterp();
     void DrawSpectrum(QVector<double> X,QVector<double> Y);
+
     void DrawSpectrum_Spectrum2(QVector<double> X,QVector<double> Y);
     void DrawSpectrum_FilterResponse(QVector<double> X,QVector<double> Y);
 
@@ -126,7 +142,7 @@ private:
 public:
     QString name;
 
-    QVector<double> m_pdOutFFTNxt;
+    double *m_pdOutFFTNxt;
     QVector<double>	m_pdSpectrumNxt_X;
     QVector<double>	m_pdSpectrumNxt_Y;
 
@@ -138,14 +154,14 @@ public:
     double	*m_pdDataQ;
     Ipp32fc *m_pdDataIQ;
 
-    QVector<double> m_pdOutFFT;
-    QVector<double> m_pdSpectrum_X;
-    QVector<double> m_pdSpectrum_Y;
-    QVector<double> m_pdMaxHoldSpectrum;
-    QVector<double> m_pdMaxHoldPhaseErr;
+   double *m_pdOutFFT;
+   QVector<double> m_pdSpectrum_X;
+   QVector<double> m_pdSpectrum_Y;
+   double *m_pdMaxHoldSpectrum;
+   double *m_pdMaxHoldPhaseErr;
 
-    QVector<double> ScatterBuff;
-    QVector<double> m_pdSignal;
+    double *ScatterBuff;
+    double  *m_pdSignal;
     bool m_bInSettingMode;
 public : //Spectrum
     int		m_iSizeSpectrum;
@@ -159,16 +175,21 @@ public : //Spectrum
     double	m_dCurFrequency;
     double	m_dNextFrequency;
     double	m_dPosTime;
-
+public:
+    bool bRun;
+    int m_iIndexConvert;
+    qulonglong m_iSizeConvert;
     int		m_iSizeSignalNxt;
-    QVector<double>	m_pdSignalNxt;
+    double	*m_pdSignalNxt;
 private:
     Configuration *m_pConfig;
     CCalculateFFT m_calcFFT;
     QTimer *timer;
     SM_ALL_SETTING m_stSettingSM;
 public:
-    bool m_bRunMode;
+    void OpenSaveFile(QString strAddr);
+    void RunConvert(bool bRun);
+    bool IsRunConvert(void){return m_bRunConvert;}
     bool m_bStartSpectrum;
     bool m_bPauseSpectrum;
     bool m_bStartSelect;
@@ -178,6 +199,10 @@ public:
     bool IsPauseSpectrum(void){return m_bPauseSpectrum;}
     bool IsStartSelect(void){return m_bStartSelect;}
 private:
+    bool m_bRunConvert;
+    bool ConvertBuffer(void);
+    bool m_bKillThreadConvert;
+    bool m_bRunMode;
     double m_dCurrentDC;
     QString  InputFilePath;
     bool m_bFirstFrame;
@@ -207,7 +232,8 @@ private:
     int		m_iChangeRatio ;// iAdded
     int		m_iWinType ;// iAdded
 
-    Ipp64f* taps_ippLPF ; // iAdded
+    Ipp8u  *bufLPF;
+    Ipp64f *taps_ippLPF ; // iAdded
     int tapslen_ippLPF; // iAdded
     double rFreq_ippLPF; // iAdded
     int WinType_Index;
@@ -223,7 +249,8 @@ public: // IIR Var
 
 public: // FIR var
     IppsFIRSpec_64f *pSpec_FIR;
-    double           *src_FIR, *dst_FIR, *dlysrc_FIR, *dlydst_FIR, *taps_FIR, *DATA_FIR;
+    double           *src_FIR, *dst_FIR, *dlysrc_FIR, *dlydst_FIR,*taps_FIR,*DATA_FIR;
+
     Ipp8u           *buf_FIR;
     int             specSize_FIR, bufSize_FIR;
     IppStatus status_FIR;

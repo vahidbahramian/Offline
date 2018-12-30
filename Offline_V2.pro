@@ -44,7 +44,7 @@ SOURCES += main.cpp\
     mode_ff.cpp \
     mapping.cpp \
     mode_sa.cpp \
-    processor.cpp
+    AMREstimation.cpp \
 
 HEADERS  += mainwindow.h \
     customplotzoom.h \
@@ -56,7 +56,7 @@ HEADERS  += mainwindow.h \
     mapping.h \
     mode_sa.h \
     mode_ff.h \
-    processor.h
+    AMREstimation.h \
 
 FORMS    += mainwindow.ui \
     mapping.ui
@@ -86,7 +86,8 @@ DISTFILES += \
     ./icons/record_copy.png \
     ./icons/red-stop.png \
     ./icons/save.png \
-    ./icons/stop.png
+    ./icons/stop.png \
+
 
 
 
@@ -95,3 +96,6 @@ unix:!macx: LIBS += -L$$PWD/FCLib/ -lFcEstimator
 
 INCLUDEPATH += $$PWD/FCLib
 DEPENDPATH += $$PWD/FCLib
+
+INCLUDEPATH += $$PWD/DSP
+DEPENDPATH += $$PWD/DSP
