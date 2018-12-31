@@ -669,6 +669,32 @@ padding-top:5px;</string>
              <string/>
             </property>
            </widget>
+           <widget class="QProgressBar" name="pBar_SM_SaveFile">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>300</y>
+              <width>201</width>
+              <height>23</height>
+             </rect>
+            </property>
+            <property name="value">
+             <number>24</number>
+            </property>
+           </widget>
+           <widget class="QLabel" name="lbl_SM_SavefileSize">
+            <property name="geometry">
+             <rect>
+              <x>10</x>
+              <y>330</y>
+              <width>191</width>
+              <height>17</height>
+             </rect>
+            </property>
+            <property name="text">
+             <string>size...</string>
+            </property>
+           </widget>
           </widget>
           <widget class="QSplitter" name="splitter_18">
            <property name="orientation">

@@ -238,7 +238,7 @@ bool Configuration::WriteToSaveFile(double *pdData, int iSize)
         else
         {
             qint16 *piData16 = new qint16 [iSize];
-            char *pnData = new char [iSize*2];
+            char *pnData=new char[iSize*2];
 
             if(m_stInputFile.bSignedValue)
             {
@@ -251,7 +251,7 @@ bool Configuration::WriteToSaveFile(double *pdData, int iSize)
                     piData16[i] = pdData[i];
             }
 
-
+            memcpy(pnData, piData16, iSize*2);
             if(!m_stInputFile.bFirstLSB)
             {
                 memcpy(pnData, piData16, iSize*2);
@@ -262,11 +262,12 @@ bool Configuration::WriteToSaveFile(double *pdData, int iSize)
                     pnData[2*i+0] = pnData[2*i+1];
                     pnData[2*i+1] = nData;
                 }
-                memcpy(piData16, pnData, iSize*1);
+                //memcpy(piData16, pnData, iSize*1);
             }
+
             m_fileSave.write(pnData, iSize*2);
-            iSizeFileRecord=iSizeFileRecord+iSize*2;
-            qDebug("size Record %d", iSizeFileRecord);
+            iSizeFileRecord+=iSize*2;
+
 
 
             delete piData16;

@@ -1280,7 +1280,7 @@ else
 
      double *dst   =new double[iSizeSignal];
 
-     ippsFIRSR_64f(&m_pdSignal[0], dst, iSizeSignal,  pSpec,  dlysrc, dlydst,  buf);
+     ippsFIRSR_64f(m_pdSignal, dst, iSizeSignal,  pSpec,  dlysrc, dlydst,  buf);
 
      ippsCopy_64f(dlydst,dlysrc,tapslen_ippLPF);
 
@@ -1360,8 +1360,8 @@ else
     //-------------------   LPF (ipp) // iAdded   ----------------
     //------------------------------------------------------------
 
-     ippsFIRSR_64f(m_pdSignalInterp, &m_pdSignalNxt[0], m_iSizeSignalNxt,  pSpec,  dlysrc, dlydst,  buf);
-     ippsMulC_64f_I(m_iDownRate_UpSample,&m_pdSignalNxt[0],m_iSizeSignalNxt);
+     ippsFIRSR_64f(m_pdSignalInterp, m_pdSignalNxt, m_iSizeSignalNxt,  pSpec,  dlysrc, dlydst,  buf);
+     ippsMulC_64f_I(m_iDownRate_UpSample,m_pdSignalNxt,m_iSizeSignalNxt);
 
      ippsCopy_64f(dlydst,dlysrc,tapslen_ippLPF);
 
@@ -1591,6 +1591,9 @@ void Mode_SM::RunConvert(bool bRun)
         m_iIndexConvert = 0;
         m_iCounterCarrierShift = 0;
         StopSpectrum();
+        int size=m_pConfig->m_ulSizeInputFile;
+        progressBarsize=size/100;
+        pw_ui->pBar_SM_SaveFile->setRange(0,100);
         StartConvertThread();
     }
     else
@@ -1679,10 +1682,22 @@ bool Mode_SM::ConvertBuffer(void)
         }
         else if(m_stSettingSM.enTypeManipulation == NONE)
         {
-            m_pConfig->WriteToSaveFile(&m_pdSignal[0], m_iSizeSignalNxt);
+            m_pConfig->WriteToSaveFile(m_pdSignal,4096);
+            if(m_pConfig->iSizeFileRecord > progressBarsize )
+            {
+                pw_ui->pBar_SM_SaveFile->setValue(progressBarStep);
+                progressBarStep++;
+                m_pConfig->iSizeFileRecord=0;
+            }
+
+            pw_ui->lbl_SM_SavefileSize->setNum((progressBarStep*progressBarsize)/1e6);
+
         }
         else
             return false;
+
+
+
 
 //        if(!m_pConfig->wavefile)
 //            m_iIndexConvert = m_pConfig->m_fileInput.GetPosition();

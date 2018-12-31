@@ -294,6 +294,10 @@ public: // iAdded
     void SavtToFile_double(double *dbDataInp2,int nLenOut);
     int unit;
     double FS_Last;
+
+    int progressBarsize;
+    int progressBarStep;
+
 };
 
 #endif // MODE_SM_H

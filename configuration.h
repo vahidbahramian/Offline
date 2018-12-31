@@ -15,6 +15,8 @@
 #include <math.h>
 #include <QColor>
 
+
+using namespace std;
 #define PI 3.1415926535897932384626433832795
 //--- FFT Window types
 enum FFT_WINDOW_TYPE {FWT_NONE, FWT_BOXCAR, FWT_TRIANG, FWT_HAMMING, FWT_HANNING, FWT_BLACKMAN, FWT_FLATTOP, FWT_KAISER};
@@ -184,6 +186,7 @@ public:
     int Demod_Idx;
      QVector<double> *auto_Corrolation;
     int B_SizeOfRecord;
+    QVector<char> DATA;
 
     // i added
     bool m_pFlagFHInit;
@@ -232,8 +235,9 @@ public:
 
 
     void CreateDemodBitmaps(ALL_DEMOD_BITMAP *pstDemodBitmaps);
-     bool wavefile;
+    bool wavefile;
     int iSizeFileRecord;
+
 
 };
 void readTest();
